@@ -46,3 +46,29 @@ Notas:
 - Requiere migración adicional para `public_id` en imágenes: ejecuta `npm run migrate --prefix ./apps/api`.
 - Al crear/editar productos (`POST /v1/products`, `PUT /v1/products/:id`) puedes enviar `images: [{ url, alt }]` por URL (sin `public_id`).
 - `GET /v1/products/:id` retorna `images` y `category` relacionados.
+## Recuperación de contraseña por correo (SMTP Gmail)
+
+Para enviar la contraseña temporal por correo (en lugar de devolverla en la API), configura SMTP con Gmail:
+
+1. Activa verificación en dos pasos (2FA) en tu cuenta Google.
+2. Genera un "App Password" (Código de aplicación) desde Google Account → Security → App passwords.
+3. Copia `.env.example` a `.env` y rellena estas variables:
+
+```
+SMTP_USER=tu_correo@gmail.com
+SMTP_PASS=TU_APP_PASSWORD
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_FROM=Tienda Virtual <tu_correo@gmail.com>
+```
+
+Al llamar `POST /v1/auth/forgot`:
+- Se genera una contraseña temporal.
+- Se actualiza el `password_hash` del usuario.
+- Si SMTP está configurado, se envía un correo al usuario con la contraseña temporal.
+- En desarrollo, si SMTP no está configurado, la API devuelve `generatedPassword` para facilitar pruebas.
+
+## Cambio de contraseña
+
+- `POST /v1/auth/change` (autenticado): requiere `oldPassword` y `newPassword`.
+- Verifica la contraseña actual y guarda la nueva con `bcrypt`.

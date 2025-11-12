@@ -1,4 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/v1'
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/v1'
 
 export async function login(email, password) {
   const res = await fetch(`${API_URL}/auth/login`, {
@@ -8,6 +8,42 @@ export async function login(email, password) {
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data?.error?.message || 'Error de login')
+  return data
+}
+
+export async function register({ name, email, password }) {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password })
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error?.message || 'Error de registro')
+  return data
+}
+
+export async function forgotPassword(email) {
+  const res = await fetch(`${API_URL}/auth/forgot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error?.message || 'Error al recuperar contraseña')
+  return data
+}
+
+export async function changePassword(token, { oldPassword, newPassword }) {
+  const res = await fetch(`${API_URL}/auth/change`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ oldPassword, newPassword })
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.error?.message || 'Error al cambiar contraseña')
   return data
 }
 
@@ -60,5 +96,19 @@ export async function getMyOrders(token) {
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data?.error?.message || 'Error al cargar mis pedidos')
+  return data
+}
+
+export async function createOrder(token, payload) {
+  const res = await fetch(`${API_URL}/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data?.error?.message || 'Error al crear la orden')
   return data
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { SafeAreaView, View, Text, Image, Button, FlatList } from 'react-native'
+import { SafeAreaView, View, Text, Image, Button as RNButton, FlatList } from 'react-native'
+import Btn from '../ui/Button'
 import { getCart, setCart } from '../lib/cart'
 
 export default function Cart({ onCheckout }) {
@@ -45,8 +46,8 @@ export default function Cart({ onCheckout }) {
               <Text className="text-neutral-600">${item.product?.price} · Cant: {item.qty}</Text>
             </View>
             <View className="flex-row gap-2">
-              <Button title="-" onPress={() => updateQty(index, -1)} />
-              <Button title="+" onPress={() => updateQty(index, +1)} />
+              <RNButton title="-" onPress={() => updateQty(index, -1)} />
+              <RNButton title="+" onPress={() => updateQty(index, +1)} />
             </View>
           </View>
         )}
@@ -54,7 +55,7 @@ export default function Cart({ onCheckout }) {
           <View className="px-4 py-4">
             <Text className="text-lg font-bold">Total: ${total.toFixed(2)}</Text>
             <View className="mt-3">
-              <Button title="Continuar al pago" onPress={onCheckout} />
+              <Btn title="Continuar al pago" onPress={onCheckout} />
             </View>
           </View>
         )}

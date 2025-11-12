@@ -2,20 +2,28 @@ import { useEffect, useState, useCallback } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { View, Text, Button, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import Screen from './ui/Screen'
+import Input from './ui/Input'
+import Btn from './ui/Button'
 import { getToken, getUser, setToken, setUser, clearToken, clearUser } from './lib/auth'
 import { login, getOrdersAdmin, setOrderStatus } from './lib/api'
+import Register from './screens/Register'
+import Recover from './screens/Recover'
+import Account from './screens/Account'
 import Catalog from './screens/Catalog'
 import ProductDetail from './screens/ProductDetail'
 import Cart from './screens/Cart'
 import MyOrders from './screens/MyOrders'
+import Checkout from './screens/Checkout'
+import OrderConfirmation from './screens/OrderConfirmation'
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
 
-function LoginScreen({ onLoggedIn }) {
-  const [email] = useState('admin@tienda.com')
-  const [password] = useState('admin123')
+function LoginScreen({ onLoggedIn, onGoRegister, onGoRecover }) {
+  const [email, setEmail] = useState('admin@tienda.com')
+  const [password, setPassword] = useState('admin123')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const doLogin = async () => {
@@ -23,9 +31,12 @@ function LoginScreen({ onLoggedIn }) {
       setLoading(true)
       setError('')
       const data = await login(email, password)
-      await setToken(data.token)
-      await setUser(data.user)
-      onLoggedIn(data.user)
+      const token = data.accessToken || data.token
+      if (!token) throw new Error('Token no recibido')
+      await setToken(token)
+      const user = data.user || { role: 'CUSTOMER' }
+      await setUser(user)
+      onLoggedIn(user)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -33,12 +44,20 @@ function LoginScreen({ onLoggedIn }) {
     }
   }
   return (
-    <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12 }}>Inicia sesión</Text>
-      <Text style={{ color: '#666', marginBottom: 12 }}>Usando credenciales por defecto del seed</Text>
-      {!!error && <Text style={{ color: 'red', marginBottom: 12 }}>{error}</Text>}
-      <Button title={loading ? 'Ingresando...' : 'Ingresar como Admin'} onPress={doLogin} disabled={loading} />
-    </SafeAreaView>
+    <Screen center>
+      <Text style={{ fontSize: 24, fontWeight: '800' }}>Bienvenido</Text>
+      <Text style={{ color: '#666', marginTop: 6 }}>Inicia sesión para continuar.</Text>
+      <Input label="Correo" value={email} onChangeText={setEmail} placeholder="you@example.com" inputMode="email" autoCapitalize="none" />
+      <Input label="Contraseña" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry autoCapitalize="none" />
+      {!!error && <Text style={{ color: 'red', marginTop: 12 }}>{error}</Text>}
+      <View style={{ marginTop: 16 }}>
+        <Btn title={loading ? 'Ingresando…' : 'Iniciar sesión'} onPress={doLogin} disabled={loading} loading={loading} />
+      </View>
+      <View style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <TouchableOpacity onPress={onGoRecover}><Text style={{ color: '#1f7ae0', fontWeight: '600' }}>¿Olvidaste tu contraseña?</Text></TouchableOpacity>
+        <TouchableOpacity onPress={onGoRegister}><Text style={{ color: '#1f7ae0', fontWeight: '600' }}>Registrarse</Text></TouchableOpacity>
+      </View>
+    </Screen>
   )
 }
 
@@ -120,17 +139,27 @@ function AdminTabs({ token, onLogout }) {
       <Tab.Screen name="Productos" children={() => <Placeholder title="Productos (Admin)" />} />
       <Tab.Screen name="Categorías" children={() => <Placeholder title="Categorías (Admin)" />} />
       <Tab.Screen name="Cuenta" children={() => (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Button title="Cerrar sesión" onPress={onLogout} />
-        </SafeAreaView>
+        <Screen center padded>
+          <Btn title="Cerrar sesión" onPress={onLogout} />
+        </Screen>
       )} />
     </Tab.Navigator>
   )
 }
 
-function CustomerTabs({ onLogout }) {
+function CustomerTabs({ onLogout, token }) {
   const [selectedProduct, setSelectedProduct] = useState(null)
-  const [checkoutRequested, setCheckoutRequested] = useState(false)
+  const CartStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="Cart" options={{ title: 'Carrito' }}>
+        {({ navigation }) => (
+          <Cart onCheckout={() => navigation.navigate('Checkout')} />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="Checkout" options={{ title: 'Checkout' }} component={Checkout} />
+      <Stack.Screen name="OrderConfirmation" options={{ title: 'Pedido confirmado' }} component={OrderConfirmation} />
+    </Stack.Navigator>
+  )
   return (
     <Tab.Navigator>
       <Tab.Screen name="Catálogo" children={() => (
@@ -140,14 +169,10 @@ function CustomerTabs({ onLogout }) {
           <Catalog onOpenProduct={(id) => setSelectedProduct(id)} />
         )
       )} />
-      <Tab.Screen name="Carrito" children={() => (
-        <Cart onCheckout={() => setCheckoutRequested(true)} />
-      )} />
+      <Tab.Screen name="Carrito" component={CartStack} />
       <Tab.Screen name="Mis pedidos" component={MyOrders} />
       <Tab.Screen name="Cuenta" children={() => (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Button title="Cerrar sesión" onPress={onLogout} />
-        </SafeAreaView>
+        <Account token={token} onLogout={onLogout} />
       )} />
     </Tab.Navigator>
   )
@@ -185,13 +210,21 @@ export default function App() {
       {!user || !token ? (
         <Stack.Navigator>
           <Stack.Screen name="Login" options={{ title: 'Login' }}>
-            {() => <LoginScreen onLoggedIn={onLoggedIn} />}
+            {({ navigation }) => (
+              <LoginScreen
+                onLoggedIn={onLoggedIn}
+                onGoRegister={() => navigation.navigate('Register')}
+                onGoRecover={() => navigation.navigate('Recover')}
+              />
+            )}
           </Stack.Screen>
+          <Stack.Screen name="Register" options={{ title: 'Registro' }} component={Register} />
+          <Stack.Screen name="Recover" options={{ title: 'Recuperar contraseña' }} component={Recover} />
         </Stack.Navigator>
       ) : user.role === 'ADMIN' ? (
         <AdminTabs token={token} onLogout={onLogout} />
       ) : (
-        <CustomerTabs onLogout={onLogout} />
+        <CustomerTabs token={token} onLogout={onLogout} />
       )}
     </NavigationContainer>
   )
