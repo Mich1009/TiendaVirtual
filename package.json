@@ -1,0 +1,12 @@
+{
+  "name": "tienda-virtual",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./start-expo-and-db.ps1",
+    "start:api": "npm run dev --prefix ./backend/api",
+    "start:mobile": "npm start --prefix ./frontend",
+    "migrate": "npm run migrate --prefix ./backend/api",
+    "seed": "npm run seed --prefix ./backend/api"
+  }
+}
