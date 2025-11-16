@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
-import { View, Text, Image, TextInput, Pressable, FlatList } from 'react-native'
+import { View, Text, Image, Pressable, FlatList, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useCart } from '@/app/context/CartContext'
+import { useCart } from '@/context/CartContext'
+import { FalabellaColors } from '@/constants/theme'
+import { IconSymbol } from '@/components/ui/icon-symbol'
 
 export default function CartScreen() {
   const router = useRouter()
@@ -9,45 +11,78 @@ export default function CartScreen() {
   const empty = useMemo(() => items.length === 0, [items])
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: '600' }}>Carrito</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mi Carrito</Text>
+        <Text style={styles.itemCount}>{items.length} {items.length === 1 ? 'producto' : 'productos'}</Text>
+      </View>
+
       {empty ? (
-        <View style={{ marginTop: 16 }}>
-          <Text>Tu carrito está vacío.</Text>
-          <Pressable onPress={() => router.push('/(tabs)/catalog')} style={{ marginTop: 12, backgroundColor: '#111', paddingVertical: 10, borderRadius: 8, alignItems: 'center' }}>
-            <Text style={{ color: 'white' }}>Explorar productos</Text>
+        <View style={styles.emptyContainer}>
+          <IconSymbol name="cart" size={80} color={FalabellaColors.textMuted} />
+          <Text style={styles.emptyTitle}>Tu carrito está vacío</Text>
+          <Text style={styles.emptySubtitle}>Agrega productos para comenzar tu compra</Text>
+          <Pressable onPress={() => router.push('/(tabs)/catalog')} style={styles.shopButton}>
+            <Text style={styles.shopButtonText}>Explorar productos</Text>
           </Pressable>
         </View>
       ) : (
-        <View style={{ marginTop: 16 }}>
+        <View style={styles.contentContainer}>
           <FlatList
             data={items}
             keyExtractor={(i) => String(i.id)}
+            contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
-              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#eee' }}>
-                {item.img ? <Image source={{ uri: item.img }} style={{ width: 64, height: 64, borderRadius: 8 }} /> : null}
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ fontWeight: '600' }}>{item.name}</Text>
-                  <Text style={{ color: '#666' }}>${Number(item.price).toFixed(2)}</Text>
+              <View style={styles.cartItem}>
+                {item.img ? (
+                  <Image source={{ uri: item.img }} style={styles.itemImage} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.itemImage, styles.placeholderImage]} />
+                )}
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={styles.itemPrice}>${Number(item.price).toLocaleString('es-CL')}</Text>
+                  
+                  <View style={styles.quantityContainer}>
+                    <Pressable 
+                      onPress={() => updateQty(item.id, Math.max(1, item.qty - 1))}
+                      style={styles.quantityButton}
+                    >
+                      <IconSymbol name="minus" size={16} color={FalabellaColors.text} />
+                    </Pressable>
+                    <Text style={styles.quantityText}>{item.qty}</Text>
+                    <Pressable 
+                      onPress={() => updateQty(item.id, item.qty + 1)}
+                      style={styles.quantityButton}
+                    >
+                      <IconSymbol name="plus" size={16} color={FalabellaColors.text} />
+                    </Pressable>
+                  </View>
                 </View>
-                <TextInput
-                  value={String(item.qty)}
-                  onChangeText={(t) => updateQty(item.id, Math.max(1, parseInt(t || '1')))}
-                  keyboardType="number-pad"
-                  style={{ width: 56, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 8, height: 36 }}
-                />
-                <Pressable onPress={() => removeItem(item.id)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: '#eee', marginLeft: 8 }}>
-                  <Text>Quitar</Text>
+                <Pressable onPress={() => removeItem(item.id)} style={styles.removeButton}>
+                  <IconSymbol name="trash" size={20} color={FalabellaColors.error} />
                 </Pressable>
               </View>
             )}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
-          <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#eee' }}>
-            <Text style={{ fontSize: 16 }}>Total</Text>
-            <Text style={{ marginTop: 4, fontSize: 28, fontWeight: '700' }}>${total.toFixed(2)}</Text>
-            <Pressable onPress={() => router.push('/checkout')} style={{ marginTop: 12, backgroundColor: '#111', paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}>
-              <Text style={{ color: 'white', fontWeight: '600' }}>Proceder al pago</Text>
+
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>${total.toLocaleString('es-CL')}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Envío</Text>
+              <Text style={styles.summaryFree}>Gratis</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>${total.toLocaleString('es-CL')}</Text>
+            </View>
+            <Pressable onPress={() => router.push('/checkout')} style={styles.checkoutButton}>
+              <Text style={styles.checkoutButtonText}>Continuar con la compra</Text>
             </Pressable>
           </View>
         </View>
@@ -55,3 +90,181 @@ export default function CartScreen() {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  header: {
+    backgroundColor: FalabellaColors.white,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: FalabellaColors.border,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+  },
+  itemCount: {
+    fontSize: 14,
+    color: FalabellaColors.textMuted,
+    marginTop: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: FalabellaColors.text,
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: FalabellaColors.textMuted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  shopButton: {
+    marginTop: 24,
+    backgroundColor: FalabellaColors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  shopButtonText: {
+    color: FalabellaColors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+  },
+  cartItem: {
+    flexDirection: 'row',
+    backgroundColor: FalabellaColors.white,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: FalabellaColors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  placeholderImage: {
+    backgroundColor: FalabellaColors.border,
+  },
+  itemDetails: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'space-between',
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.text,
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: FalabellaColors.primary,
+    marginTop: 4,
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  quantityButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: FalabellaColors.backgroundGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: FalabellaColors.border,
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: FalabellaColors.text,
+    marginHorizontal: 16,
+    minWidth: 24,
+    textAlign: 'center',
+  },
+  removeButton: {
+    padding: 8,
+  },
+  separator: {
+    height: 12,
+  },
+  summaryContainer: {
+    backgroundColor: FalabellaColors.white,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: FalabellaColors.border,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: FalabellaColors.textLight,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.text,
+  },
+  summaryFree: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.success,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: FalabellaColors.border,
+    marginVertical: 12,
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+  },
+  totalValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: FalabellaColors.primary,
+  },
+  checkoutButton: {
+    backgroundColor: FalabellaColors.primary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  checkoutButtonText: {
+    color: FalabellaColors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+})

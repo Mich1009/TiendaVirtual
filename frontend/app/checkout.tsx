@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Pressable, FlatList, Image } from 'react-native'
+import { View, Text, TextInput, Pressable, FlatList, Image, StyleSheet, ScrollView, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { createOrder } from '@/app/lib/api'
-import { useCart } from '@/app/context/CartContext'
-import { getToken } from '@/app/lib/auth'
+import { createOrder } from '@/lib/api'
+import { useCart } from '@/context/CartContext'
+import { getToken } from '@/lib/auth'
+import { FalabellaColors } from '@/constants/theme'
+import { IconSymbol } from '@/components/ui/icon-symbol'
 
 export default function CheckoutScreen() {
   const router = useRouter()
@@ -12,90 +14,428 @@ export default function CheckoutScreen() {
   const [cardNumber, setCardNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [shipping, setShipping] = useState<any>(null)
 
   useEffect(() => {
     ;(async () => {
-      const p = await AsyncStorage.getItem('settings.payment')
-      if (p) {
-        try { const parsed = JSON.parse(p); setCardNumber(parsed?.last4 ? '' : '') } catch {}
-      }
+      try {
+        const s = await AsyncStorage.getItem('settings.shipping')
+        if (s) setShipping(JSON.parse(s))
+        const p = await AsyncStorage.getItem('settings.payment')
+        if (p) {
+          const parsed = JSON.parse(p)
+          if (parsed?.last4) setCardNumber(`•••• ${parsed.last4}`)
+        }
+      } catch {}
     })()
   }, [])
 
   async function handlePay() {
     try {
-      setLoading(true); setError('')
+      setLoading(true)
+      setError('')
+      
       const token = await getToken()
-      if (!token) { router.push('/login'); return }
-      let shipping: any = {}
+      if (!token) {
+        Alert.alert('Sesión requerida', 'Debes iniciar sesión para continuar', [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Iniciar sesión', onPress: () => router.push('/login') }
+        ])
+        return
+      }
+
+      let shippingData: any = {}
       let payment: any = {}
+      
       try {
         const s = await AsyncStorage.getItem('settings.shipping')
-        if (s) shipping = JSON.parse(s)
+        if (s) shippingData = JSON.parse(s)
         const p = await AsyncStorage.getItem('settings.payment')
         if (p) payment = JSON.parse(p)
       } catch {}
-      if (!shipping.fullName) {
+
+      if (!shippingData.fullName) {
         const nombres = ['Juan Pérez','María López','Carlos García','Ana Torres']
-        const ciudades = ['CDMX','Guadalajara','Monterrey','Puebla']
-        shipping = {
+        const ciudades = ['Santiago','Valparaíso','Concepción','La Serena']
+        shippingData = {
           fullName: nombres[Math.floor(Math.random()*nombres.length)],
-          phone: `55${Math.floor(10000000 + Math.random()*89999999)}`,
-          address1: `Calle ${Math.floor(Math.random()*200)} #${Math.floor(Math.random()*999)}`,
-          address2: '',
+          phone: `+569${Math.floor(10000000 + Math.random()*89999999)}`,
+          address1: `Av. Principal ${Math.floor(Math.random()*2000)}`,
+          address2: `Depto ${Math.floor(Math.random()*500)}`,
           city: ciudades[Math.floor(Math.random()*ciudades.length)],
-          state: 'NA',
-          zip: String(10000 + Math.floor(Math.random()*89999)),
-          country: 'México'
+          state: 'Región Metropolitana',
+          zip: String(8000000 + Math.floor(Math.random()*999999)),
+          country: 'Chile'
         }
       }
+
       const digits = (cardNumber || '').replace(/\D/g, '')
-      payment = { ...payment, cardNumber: digits }
+      payment = { ...payment, cardNumber: digits || '4111111111111111' }
+
       const payload = {
         items: items.map(i => ({ productId: i.id, quantity: i.qty })),
-        shipping,
+        shipping: shippingData,
         payment
       }
-      const order = await createOrder(token, payload)
+
+      await createOrder(token, payload)
       clear()
-      router.replace(`/orders`)
+      
+      Alert.alert(
+        '¡Compra exitosa!',
+        'Tu pedido ha sido procesado correctamente',
+        [{ text: 'Ver mis pedidos', onPress: () => router.replace('/orders') }]
+      )
     } catch (e: any) {
       setError(e.message || 'Error al procesar el pago')
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (items.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <IconSymbol name="cart" size={80} color={FalabellaColors.textMuted} />
+        <Text style={styles.emptyTitle}>No hay productos</Text>
+        <Text style={styles.emptySubtitle}>Agrega productos al carrito para continuar</Text>
+        <Pressable onPress={() => router.push('/(tabs)/catalog')} style={styles.shopButton}>
+          <Text style={styles.shopButtonText}>Ir a comprar</Text>
+        </Pressable>
+      </View>
+    )
   }
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <Text style={{ fontSize: 22, fontWeight: '600' }}>Checkout</Text>
-      {items.length === 0 ? (
-        <Text style={{ marginTop: 12 }}>No hay productos en el carrito.</Text>
-      ) : (
-        <>
-          <FlatList
-            data={items}
-            keyExtractor={(i) => String(i.id)}
-            renderItem={({ item }) => (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'white', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#eee', marginTop: 12 }}>
-                {item.img ? <Image source={{ uri: item.img }} style={{ width: 56, height: 56, borderRadius: 8 }} /> : null}
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '600' }}>{item.name}</Text>
-                  <Text style={{ color: '#666' }}>x{item.qty}</Text>
-                </View>
-                <Text style={{ fontWeight: '700' }}>${(item.price * item.qty).toFixed(2)}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Resumen de compra</Text>
+          {items.map((item) => (
+            <View key={item.id} style={styles.orderItem}>
+              {item.img ? (
+                <Image source={{ uri: item.img }} style={styles.itemImage} resizeMode="cover" />
+              ) : (
+                <View style={[styles.itemImage, styles.placeholderImage]} />
+              )}
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+                <Text style={styles.itemQuantity}>Cantidad: {item.qty}</Text>
               </View>
-            )}
-          />
-          <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#eee', marginTop: 16 }}>
-            <Text style={{ fontSize: 16 }}>Total</Text>
-            <Text style={{ marginTop: 4, fontSize: 28, fontWeight: '700' }}>${total.toFixed(2)}</Text>
-            <TextInput placeholder="4111 1111 1111 1111" value={cardNumber} onChangeText={setCardNumber} style={{ marginTop: 12, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, height: 40 }} />
-            {!!error && <Text style={{ color: 'red', marginTop: 8 }}>{error}</Text>}
-            <Pressable onPress={handlePay} disabled={loading} style={{ marginTop: 12, backgroundColor: '#111', paddingVertical: 12, borderRadius: 8, alignItems: 'center' }}>
-              <Text style={{ color: 'white', fontWeight: '600' }}>{loading ? 'Procesando…' : 'Pagar'}</Text>
+              <Text style={styles.itemPrice}>${(item.price * item.qty).toLocaleString('es-CL')}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Dirección de envío</Text>
+            <Pressable onPress={() => router.push('/(tabs)/perfil')}>
+              <Text style={styles.editLink}>Editar</Text>
             </Pressable>
           </View>
-        </>
-      )}
+          {shipping ? (
+            <View style={styles.addressCard}>
+              <View style={styles.addressRow}>
+                <IconSymbol name="person.fill" size={16} color={FalabellaColors.textLight} />
+                <Text style={styles.addressText}>{shipping.fullName}</Text>
+              </View>
+              <View style={styles.addressRow}>
+                <IconSymbol name="phone.fill" size={16} color={FalabellaColors.textLight} />
+                <Text style={styles.addressText}>{shipping.phone}</Text>
+              </View>
+              <View style={styles.addressRow}>
+                <IconSymbol name="location.fill" size={16} color={FalabellaColors.textLight} />
+                <Text style={styles.addressText}>
+                  {shipping.address1}, {shipping.city}, {shipping.country}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <Pressable onPress={() => router.push('/(tabs)/perfil')} style={styles.addAddressButton}>
+              <IconSymbol name="plus.circle.fill" size={24} color={FalabellaColors.primary} />
+              <Text style={styles.addAddressText}>Agregar dirección de envío</Text>
+            </Pressable>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Método de pago</Text>
+          <View style={styles.inputWrapper}>
+            <IconSymbol name="creditcard.fill" size={20} color={FalabellaColors.textMuted} />
+            <TextInput
+              placeholder="Número de tarjeta"
+              placeholderTextColor={FalabellaColors.textMuted}
+              value={cardNumber}
+              onChangeText={setCardNumber}
+              keyboardType="number-pad"
+              maxLength={19}
+              style={styles.input}
+            />
+          </View>
+          <Text style={styles.secureText}>
+            <IconSymbol name="lock.fill" size={12} color={FalabellaColors.success} />
+            {' '}Pago seguro y encriptado
+          </Text>
+        </View>
+
+        {!!error && (
+          <View style={styles.errorContainer}>
+            <IconSymbol name="exclamationmark.circle.fill" size={20} color={FalabellaColors.error} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <View style={styles.totalContainer}>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalValue}>${total.toLocaleString('es-CL')}</Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Envío</Text>
+            <Text style={styles.freeText}>Gratis</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.totalRow}>
+            <Text style={styles.grandTotalLabel}>Total</Text>
+            <Text style={styles.grandTotalValue}>${total.toLocaleString('es-CL')}</Text>
+          </View>
+        </View>
+        <Pressable 
+          onPress={handlePay} 
+          disabled={loading} 
+          style={[styles.payButton, loading && styles.payButtonDisabled]}
+        >
+          <Text style={styles.payButtonText}>
+            {loading ? 'Procesando...' : 'Confirmar compra'}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    backgroundColor: FalabellaColors.white,
+    padding: 16,
+    marginBottom: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+    marginBottom: 12,
+  },
+  editLink: {
+    fontSize: 14,
+    color: FalabellaColors.primary,
+    fontWeight: '600',
+  },
+  orderItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: FalabellaColors.border,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  placeholderImage: {
+    backgroundColor: FalabellaColors.border,
+  },
+  itemDetails: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.text,
+  },
+  itemQuantity: {
+    fontSize: 12,
+    color: FalabellaColors.textMuted,
+    marginTop: 4,
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+  },
+  addressCard: {
+    backgroundColor: FalabellaColors.backgroundGray,
+    padding: 16,
+    borderRadius: 8,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addressText: {
+    fontSize: 14,
+    color: FalabellaColors.text,
+    marginLeft: 12,
+    flex: 1,
+  },
+  addAddressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    backgroundColor: FalabellaColors.backgroundGray,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: FalabellaColors.border,
+    borderStyle: 'dashed',
+  },
+  addAddressText: {
+    fontSize: 14,
+    color: FalabellaColors.primary,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: FalabellaColors.backgroundGray,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    height: 52,
+    borderWidth: 1,
+    borderColor: FalabellaColors.border,
+  },
+  input: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    color: FalabellaColors.text,
+  },
+  secureText: {
+    fontSize: 12,
+    color: FalabellaColors.success,
+    marginTop: 8,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    padding: 12,
+    margin: 16,
+    borderRadius: 8,
+  },
+  errorText: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    color: FalabellaColors.error,
+  },
+  footer: {
+    backgroundColor: FalabellaColors.white,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: FalabellaColors.border,
+  },
+  totalContainer: {
+    marginBottom: 16,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  totalLabel: {
+    fontSize: 14,
+    color: FalabellaColors.textLight,
+  },
+  totalValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.text,
+  },
+  freeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: FalabellaColors.success,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: FalabellaColors.border,
+    marginVertical: 12,
+  },
+  grandTotalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+  },
+  grandTotalValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: FalabellaColors.primary,
+  },
+  payButton: {
+    backgroundColor: FalabellaColors.primary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  payButtonDisabled: {
+    opacity: 0.6,
+  },
+  payButtonText: {
+    color: FalabellaColors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: FalabellaColors.white,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: FalabellaColors.text,
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: FalabellaColors.textMuted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  shopButton: {
+    marginTop: 24,
+    backgroundColor: FalabellaColors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  shopButtonText: {
+    color: FalabellaColors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+})

@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "detect-ip": "node ./scripts/detect-ip.js",
+    "verify": "node ./scripts/verify-setup.js",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -20,6 +22,7 @@
     "expo-font": "~14.0.9",
     "expo-haptics": "~15.0.7",
     "expo-image": "~3.0.10",
+    "expo-image-picker": "~16.0.6",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.14",
     "expo-splash-screen": "~31.0.10",

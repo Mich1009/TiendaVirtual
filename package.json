@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "powershell -ExecutionPolicy Bypass -File ./start-expo-and-db.ps1",
-    "start:api": "npm run dev --prefix ./backend/api",
-    "start:mobile": "npm start --prefix ./frontend",
+    "start": "powershell -ExecutionPolicy Bypass -File ./start-app.ps1",
+    "start:backend": "npm run dev --prefix ./backend/api",
+    "start:frontend": "npm start --prefix ./frontend",
+    "start:both": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"bgBlue.bold,bgMagenta.bold\" \"npm run start:backend\" \"npm run start:frontend\"",
     "migrate": "npm run migrate --prefix ./backend/api",
     "seed": "npm run seed --prefix ./backend/api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
