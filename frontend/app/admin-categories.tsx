@@ -205,10 +205,10 @@ export default function AdminCategoriesScreen() {
                     }}
                     style={styles.actionButton}
                   >
-                    <IconSymbol name="pencil" size={20} color={FalabellaColors.primary} />
+                    <Text style={styles.actionIcon}>✏️</Text>
                   </Pressable>
                   <Pressable onPress={() => handleDelete(item)} style={styles.actionButton}>
-                    <IconSymbol name="trash" size={20} color={FalabellaColors.error} />
+                    <Text style={styles.actionIcon}>🗑️</Text>
                   </Pressable>
                 </View>
               </>

@@ -1,51 +1,66 @@
 const cloudinary = require('cloudinary').v2;
 
-function isConfigured() {
-  return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
-}
+// Configurar Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-function configure() {
-  if (!isConfigured()) return;
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-  });
-}
-
-configure();
-
-async function uploadBuffer(buffer, filename = 'image.jpg', folder = process.env.CLOUDINARY_FOLDER || 'tiendavirtual/products') {
-  if (!isConfigured()) {
-    const err = new Error('Cloudinary no configurado');
-    err.code = 'NOT_CONFIGURED'; err.status = 501;
-    throw err;
-  }
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream({ folder, public_id: filename.replace(/\.[a-zA-Z0-9]+$/, '') }, (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
+/**
+ * Subir imagen a Cloudinary desde base64
+ * @param {string} base64Image - Imagen en formato base64
+ * @param {string} folder - Carpeta en Cloudinary
+ * @returns {Promise<{url: string, publicId: string}>}
+ */
+async function uploadImage(base64Image, folder = 'tiendavirtual/products') {
+  try {
+    const result = await cloudinary.uploader.upload(base64Image, {
+      folder: folder,
+      resource_type: 'image',
+      transformation: [
+        { width: 800, height: 800, crop: 'limit' },
+        { quality: 'auto:good' }
+      ]
     });
-    stream.end(buffer);
-  });
-}
 
-async function uploadUrl(url, folder = process.env.CLOUDINARY_FOLDER || 'tiendavirtual/products') {
-  if (!isConfigured()) {
-    const err = new Error('Cloudinary no configurado');
-    err.code = 'NOT_CONFIGURED'; err.status = 501;
-    throw err;
+    return {
+      url: result.secure_url,
+      publicId: result.public_id
+    };
+  } catch (error) {
+    console.error('Error subiendo imagen a Cloudinary:', error);
+    throw new Error('Error al subir la imagen');
   }
-  return cloudinary.uploader.upload(url, { folder });
 }
 
-async function deleteResource(publicId) {
-  if (!isConfigured()) {
-    const err = new Error('Cloudinary no configurado');
-    err.code = 'NOT_CONFIGURED'; err.status = 501;
-    throw err;
+/**
+ * Eliminar imagen de Cloudinary
+ * @param {string} publicId - ID público de la imagen en Cloudinary
+ */
+async function deleteImage(publicId) {
+  try {
+    await cloudinary.uploader.destroy(publicId);
+    console.log('✓ Imagen eliminada de Cloudinary:', publicId);
+  } catch (error) {
+    console.error('Error eliminando imagen de Cloudinary:', error);
+    throw new Error('Error al eliminar la imagen');
   }
-  return cloudinary.uploader.destroy(publicId);
 }
 
-module.exports = { cloudinary, isConfigured, uploadBuffer, uploadUrl, deleteResource };
+/**
+ * Verificar si Cloudinary está configurado
+ */
+function isConfigured() {
+  return !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+}
+
+module.exports = {
+  uploadImage,
+  deleteImage,
+  isConfigured
+};

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { View, Text, Image, Pressable, ActivityIndicator, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Image, Pressable, ActivityIndicator, ScrollView, StyleSheet, Alert } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getProduct } from '@/lib/api'
 import { useCart } from '@/context/CartContext'
+import { getToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 
@@ -31,8 +32,26 @@ export default function ProductDetail() {
     })()
   }, [id])
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return
+    
+    // Verificar si el usuario está autenticado
+    const token = await getToken()
+    if (!token) {
+      Alert.alert(
+        'Inicia sesión',
+        'Debes iniciar sesión para agregar productos al carrito',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Iniciar sesión',
+            onPress: () => router.push('/login')
+          }
+        ]
+      )
+      return
+    }
+    
     const img = product.images?.[0]?.url || 'https://via.placeholder.com/800x500?text=Producto'
     addItem({ id: product.id, name: product.name, price: product.price, img, qty: 1 })
     setAdded(true)
@@ -78,7 +97,7 @@ export default function ProductDetail() {
           <Text style={styles.productName}>{product.name}</Text>
           
           <View style={styles.priceContainer}>
-            <Text style={styles.productPrice}>${Number(product.price).toLocaleString('es-CL')}</Text>
+            <Text style={styles.productPrice}>S/ {Number(product.price).toLocaleString('es-PE')}</Text>
             {product.stock !== undefined && (
               <View style={styles.stockBadge}>
                 <Text style={styles.stockText}>

@@ -122,7 +122,7 @@ export default function CheckoutScreen() {
                 <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
                 <Text style={styles.itemQuantity}>Cantidad: {item.qty}</Text>
               </View>
-              <Text style={styles.itemPrice}>${(item.price * item.qty).toLocaleString('es-CL')}</Text>
+              <Text style={styles.itemPrice}>S/ {(item.price * item.qty).toLocaleString('es-PE')}</Text>
             </View>
           ))}
         </View>
@@ -191,7 +191,7 @@ export default function CheckoutScreen() {
         <View style={styles.totalContainer}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>${total.toLocaleString('es-CL')}</Text>
+            <Text style={styles.totalValue}>S/ {total.toLocaleString('es-PE')}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Envío</Text>
@@ -200,7 +200,7 @@ export default function CheckoutScreen() {
           <View style={styles.divider} />
           <View style={styles.totalRow}>
             <Text style={styles.grandTotalLabel}>Total</Text>
-            <Text style={styles.grandTotalValue}>${total.toLocaleString('es-CL')}</Text>
+            <Text style={styles.grandTotalValue}>S/ {total.toLocaleString('es-PE')}</Text>
           </View>
         </View>
         <Pressable 

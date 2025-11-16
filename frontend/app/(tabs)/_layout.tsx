@@ -8,10 +8,29 @@
 
 import { Tabs } from 'expo-router'
 import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 import { HapticTab } from '@/components/haptic-tab'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { FalabellaColors } from '@/constants/theme'
 import { getUser } from '@/lib/auth'
+import { useCart } from '@/context/CartContext'
+
+// Componente para el icono del carrito con badge
+function CartIcon({ color }: { color: string }) {
+  const { items } = useCart()
+  const itemCount = items.reduce((sum, item) => sum + item.qty, 0)
+  
+  return (
+    <View style={{ width: 28, height: 28 }}>
+      <IconSymbol size={28} name="cart.fill" color={color} />
+      {itemCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+        </View>
+      )}
+    </View>
+  )
+}
 
 export default function TabLayout() {
   const [userRole, setUserRole] = useState<'CUSTOMER' | 'ADMIN' | null>(null)
@@ -139,7 +158,7 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: 'Carrito',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill" color={color} />,
+          tabBarIcon: ({ color }) => <CartIcon color={color} />,
         }}
       />
       <Tabs.Screen
@@ -177,3 +196,23 @@ export default function TabLayout() {
     </Tabs>
   )
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    right: -6,
+    top: -4,
+    backgroundColor: FalabellaColors.error,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: FalabellaColors.white,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+})

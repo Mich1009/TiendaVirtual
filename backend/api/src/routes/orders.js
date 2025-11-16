@@ -51,8 +51,13 @@ router.post('/', authRequired, async (req, res, next) => {
       const digits = (value.payment.cardNumber || '').replace(/\D/g, '');
       const brand = value.payment.brand || (digits.startsWith('4') ? 'Visa' : digits.startsWith('5') ? 'Mastercard' : digits ? 'Tarjeta' : null);
       const last4 = value.payment.last4 || (digits.length >= 4 ? digits.slice(-4) : null);
-      const days = Math.floor(Math.random() * 5) + 3; // 3–7 días
-      const eta = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      
+      // MODO PRUEBA: Entrega en 1 día para testing
+      const eta = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000); // 1 día
+      
+      // MODO PRODUCCIÓN: Descomentar para usar días reales
+      // const days = Math.floor(Math.random() * 5) + 3; // 3–7 días
+      // const eta = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
       // Crear orden (estado PAID por simulación)
       const order = await Order.query(trx).insert({
@@ -130,8 +135,15 @@ router.get('/my', authRequired, async (req, res, next) => {
       id: o.id,
       total: o.total,
       status: o.status,
-      createdAt: o.createdAt,
-      items: itemsByOrder[o.id] || [],
+      created_at: o.created_at,
+      items: (itemsByOrder[o.id] || []).map(item => ({
+        order_id: item.order_id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_image: item.product_image_url,
+        quantity: item.quantity,
+        unit_price: item.unit_price
+      })),
       shipping: {
         fullName: o.shipping_name,
         phone: o.shipping_phone,

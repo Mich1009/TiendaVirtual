@@ -102,7 +102,7 @@ export default function AdminDashboardScreen() {
 
           <View style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
             <IconSymbol name="dollarsign.circle.fill" size={32} color="#F57C00" />
-            <Text style={styles.statValue}>${stats.totalSales.toLocaleString('es-CL')}</Text>
+            <Text style={styles.statValue}>S/ {stats.totalSales.toLocaleString('es-PE')}</Text>
             <Text style={styles.statLabel}>Ventas</Text>
           </View>
         </ScrollView>

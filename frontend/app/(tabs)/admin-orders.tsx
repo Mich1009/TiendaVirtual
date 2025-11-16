@@ -133,7 +133,7 @@ export default function AdminOrdersScreen() {
               </View>
               <View style={styles.orderRow}>
                 <IconSymbol name="dollarsign.circle.fill" size={16} color={FalabellaColors.textMuted} />
-                <Text style={styles.orderText}>${item.total.toLocaleString('es-CL')}</Text>
+                <Text style={styles.orderText}>S/ {item.total.toLocaleString('es-PE')}</Text>
               </View>
               <View style={styles.orderRow}>
                 <IconSymbol name="calendar" size={16} color={FalabellaColors.textMuted} />
@@ -237,7 +237,7 @@ export default function AdminOrdersScreen() {
                   {/* Total */}
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Total</Text>
-                    <Text style={styles.totalAmount}>${selectedOrder.total.toLocaleString('es-CL')}</Text>
+                    <Text style={styles.totalAmount}>S/ {selectedOrder.total.toLocaleString('es-PE')}</Text>
                   </View>
                 </>
               )}

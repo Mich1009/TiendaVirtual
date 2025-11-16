@@ -260,15 +260,6 @@ export default function PerfilScreen() {
               <Text style={styles.userInfoValue}>{user?.email}</Text>
             </View>
           </View>
-          <View style={styles.userInfoRow}>
-            <IconSymbol name="shield.fill" size={20} color={FalabellaColors.primary} />
-            <View style={styles.userInfoText}>
-              <Text style={styles.userInfoLabel}>Rol</Text>
-              <Text style={styles.userInfoValue}>
-                {user?.role === 'ADMIN' ? 'Administrador' : 'Cliente'}
-              </Text>
-            </View>
-          </View>
         </View>
 
         {/* Si es ADMIN, mostrar botón para ir a configuración */}
@@ -300,6 +291,22 @@ export default function PerfilScreen() {
         {/* Solo mostrar estas secciones si NO es admin */}
         {user?.role !== 'ADMIN' && (
           <>
+        {/* Botón para ver pedidos */}
+        <Pressable 
+          onPress={() => router.push('/orders')} 
+          style={styles.ordersButton}
+        >
+          <View style={styles.ordersButtonContent}>
+            <IconSymbol name="shippingbox.fill" size={24} color={FalabellaColors.primary} />
+            <View style={styles.ordersButtonText}>
+              <Text style={styles.ordersButtonTitle}>Mis Pedidos</Text>
+              <Text style={styles.ordersButtonSubtitle}>
+                Ver historial de compras y seguimiento de envíos
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={20} color={FalabellaColors.textMuted} />
+          </View>
+        </Pressable>
 
         {/* Sección: Dirección de envío */}
         <View style={styles.section}>
@@ -820,5 +827,35 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     fontSize: 20,
+  },
+  ordersButton: {
+    backgroundColor: FalabellaColors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: FalabellaColors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  ordersButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  ordersButtonText: {
+    flex: 1,
+  },
+  ordersButtonTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+    marginBottom: 4,
+  },
+  ordersButtonSubtitle: {
+    fontSize: 14,
+    color: FalabellaColors.textMuted,
+    lineHeight: 20,
   },
 })

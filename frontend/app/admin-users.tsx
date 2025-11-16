@@ -248,11 +248,11 @@ export default function AdminUsersScreen() {
             </View>
             <View style={styles.userActions}>
               <Pressable onPress={() => openEditModal(item)} style={styles.editButton}>
-                <IconSymbol name="pencil" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>✏️</Text>
                 <Text style={styles.actionButtonText}>Editar</Text>
               </Pressable>
               <Pressable onPress={() => handleDelete(item)} style={styles.deleteButton}>
-                <IconSymbol name="trash" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>🗑️</Text>
                 <Text style={styles.actionButtonText}>Eliminar</Text>
               </Pressable>
             </View>

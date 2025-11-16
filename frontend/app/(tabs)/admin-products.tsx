@@ -11,10 +11,12 @@
 import { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
 import { useRouter } from 'expo-router'
+import * as ImagePicker from 'expo-image-picker'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { getToken } from '@/lib/auth'
 import { getProducts, getCategories, createProduct, updateProduct, deleteProduct } from '@/lib/api'
+import { uploadImage } from '@/lib/upload'
 
 type Product = {
   id: number
@@ -52,6 +54,7 @@ export default function AdminProductsScreen() {
     imageUrl: '',
     active: true
   })
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -111,6 +114,48 @@ export default function AdminProductsScreen() {
       active: product.active
     })
     setModalVisible(true)
+  }
+
+  async function handlePickImage() {
+    try {
+      // Solicitar permisos
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tus fotos para subir imágenes')
+        return
+      }
+
+      // Seleccionar imagen
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets[0]) {
+        setUploadingImage(true)
+        
+        try {
+          // Subir a Cloudinary
+          const imageUrl = await uploadImage(result.assets[0].uri)
+          setFormData({ ...formData, imageUrl })
+          Alert.alert('Éxito', 'Imagen subida correctamente')
+        } catch (error: any) {
+          console.error('Error subiendo imagen:', error)
+          Alert.alert(
+            'Error al subir imagen',
+            error.message || 'Verifica que Cloudinary esté configurado en el backend'
+          )
+        } finally {
+          setUploadingImage(false)
+        }
+      }
+    } catch (error) {
+      console.error('Error seleccionando imagen:', error)
+      Alert.alert('Error', 'No se pudo seleccionar la imagen')
+      setUploadingImage(false)
+    }
   }
 
   async function handleSave() {
@@ -248,16 +293,16 @@ export default function AdminProductsScreen() {
             <View style={styles.productInfo}>
               <Text style={styles.productName}>{item.name}</Text>
               <Text style={styles.productCategory}>{item.category?.name || 'Sin categoría'}</Text>
-              <Text style={styles.productPrice}>${item.price.toLocaleString('es-CL')}</Text>
+              <Text style={styles.productPrice}>S/ {item.price.toLocaleString('es-PE')}</Text>
               <Text style={styles.productStock}>Stock: {item.stock}</Text>
             </View>
             <View style={styles.productActions}>
               <Pressable onPress={() => openEditModal(item)} style={styles.editActionButton}>
-                <IconSymbol name="pencil" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>✏️</Text>
                 <Text style={styles.actionButtonText}>Editar</Text>
               </Pressable>
               <Pressable onPress={() => handleDelete(item)} style={styles.deleteActionButton}>
-                <IconSymbol name="trash" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>🗑️</Text>
                 <Text style={styles.actionButtonText}>Eliminar</Text>
               </Pressable>
             </View>
@@ -374,7 +419,44 @@ export default function AdminProductsScreen() {
                 ))}
               </View>
 
-              <Text style={styles.label}>URL de Imagen</Text>
+              <Text style={styles.label}>Imagen del producto</Text>
+              
+              {/* Vista previa de la imagen */}
+              {formData.imageUrl && (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: formData.imageUrl }} style={styles.imagePreview} />
+                  <Pressable
+                    onPress={() => setFormData({ ...formData, imageUrl: '' })}
+                    style={styles.removeImageButton}
+                  >
+                    <IconSymbol name="xmark.circle.fill" size={24} color={FalabellaColors.error} />
+                  </Pressable>
+                </View>
+              )}
+
+              {/* Botón para seleccionar imagen */}
+              <Pressable
+                onPress={handlePickImage}
+                disabled={uploadingImage}
+                style={[styles.pickImageButton, uploadingImage && styles.pickImageButtonDisabled]}
+              >
+                {uploadingImage ? (
+                  <>
+                    <ActivityIndicator size="small" color={FalabellaColors.white} />
+                    <Text style={styles.pickImageButtonText}>Subiendo imagen...</Text>
+                  </>
+                ) : (
+                  <>
+                    <IconSymbol name="photo.badge.plus" size={20} color={FalabellaColors.white} />
+                    <Text style={styles.pickImageButtonText}>
+                      {formData.imageUrl ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+
+              {/* Campo manual de URL (opcional) */}
+              <Text style={styles.labelSmall}>O ingresa una URL manualmente:</Text>
               <TextInput
                 placeholder="https://..."
                 placeholderTextColor={FalabellaColors.textMuted}
@@ -569,6 +651,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: FalabellaColors.white,
   },
+  actionIcon: {
+    fontSize: 14,
+  },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -747,5 +832,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: FalabellaColors.white,
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: FalabellaColors.white,
+    borderRadius: 12,
+  },
+  pickImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: FalabellaColors.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    gap: 8,
+    marginBottom: 16,
+  },
+  pickImageButtonDisabled: {
+    opacity: 0.6,
+  },
+  pickImageButtonText: {
+    color: FalabellaColors.white,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  labelSmall: {
+    fontSize: 12,
+    color: FalabellaColors.textMuted,
+    marginBottom: 8,
   },
 })

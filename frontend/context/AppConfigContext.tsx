@@ -11,6 +11,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { API_URL } from '@/constants/config'
 
 type AppConfig = {
   storeName: string
@@ -23,7 +24,9 @@ type AppConfigContextType = {
   updateStoreName: (name: string) => Promise<void>
   updateStoreLogo: (logo: string | null) => Promise<void>
   updateFontFamily: (font: string) => Promise<void>
+  updateAllSettings: (settings: Partial<AppConfig>) => Promise<void>
   resetConfig: () => Promise<void>
+  refreshConfig: () => Promise<void>
 }
 
 const defaultConfig: AppConfig = {
@@ -44,6 +47,27 @@ export function AppConfigProvider({ children }: { children: any }) {
 
   async function loadConfig() {
     try {
+      // Intentar cargar desde el backend
+      const response = await fetch(`${API_URL}/settings`)
+      if (response.ok) {
+        const data = await response.json()
+        const newConfig: AppConfig = {
+          storeName: data.store_name || defaultConfig.storeName,
+          storeLogo: data.store_logo || defaultConfig.storeLogo,
+          fontFamily: data.font_family || defaultConfig.fontFamily
+        }
+        setConfig(newConfig)
+        // Guardar en cache local
+        await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+        console.log('✅ Configuración cargada desde backend:', newConfig)
+        return
+      }
+    } catch (error) {
+      console.log('⚠ No se pudo cargar desde backend, usando cache local')
+    }
+
+    // Fallback: cargar desde AsyncStorage
+    try {
       const saved = await AsyncStorage.getItem('app.config')
       if (saved) {
         setConfig(JSON.parse(saved))
@@ -53,31 +77,123 @@ export function AppConfigProvider({ children }: { children: any }) {
     }
   }
 
-  async function saveConfig(newConfig: AppConfig) {
+  async function refreshConfig() {
+    await loadConfig()
+  }
+
+  async function updateStoreName(name: string) {
     try {
-      await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+      const token = await AsyncStorage.getItem('auth.token')
+      const response = await fetch(`${API_URL}/settings/store_name`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ value: name })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error actualizando nombre')
+      }
+
+      const newConfig = { ...config, storeName: name }
       setConfig(newConfig)
-      console.log('✅ Configuración guardada:', newConfig)
+      await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+      console.log('✅ Nombre actualizado:', name)
     } catch (error) {
-      console.error('Error guardando configuración:', error)
+      console.error('Error actualizando nombre:', error)
       throw error
     }
   }
 
-  async function updateStoreName(name: string) {
-    await saveConfig({ ...config, storeName: name })
-  }
-
   async function updateStoreLogo(logo: string | null) {
-    await saveConfig({ ...config, storeLogo: logo })
+    try {
+      const token = await AsyncStorage.getItem('auth.token')
+      const response = await fetch(`${API_URL}/settings/store_logo`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ value: logo })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error actualizando logo')
+      }
+
+      const newConfig = { ...config, storeLogo: logo }
+      setConfig(newConfig)
+      await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+      console.log('✅ Logo actualizado:', logo)
+    } catch (error) {
+      console.error('Error actualizando logo:', error)
+      throw error
+    }
   }
 
   async function updateFontFamily(font: string) {
-    await saveConfig({ ...config, fontFamily: font })
+    try {
+      const token = await AsyncStorage.getItem('auth.token')
+      const response = await fetch(`${API_URL}/settings/font_family`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ value: font })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error actualizando fuente')
+      }
+
+      const newConfig = { ...config, fontFamily: font }
+      setConfig(newConfig)
+      await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+      console.log('✅ Fuente actualizada:', font)
+    } catch (error) {
+      console.error('Error actualizando fuente:', error)
+      throw error
+    }
+  }
+
+  async function updateAllSettings(settings: Partial<AppConfig>) {
+    try {
+      const token = await AsyncStorage.getItem('auth.token')
+      
+      // Convertir a formato del backend
+      const backendSettings: any = {}
+      if (settings.storeName !== undefined) backendSettings.store_name = settings.storeName
+      if (settings.storeLogo !== undefined) backendSettings.store_logo = settings.storeLogo
+      if (settings.fontFamily !== undefined) backendSettings.font_family = settings.fontFamily
+
+      const response = await fetch(`${API_URL}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(backendSettings)
+      })
+
+      if (!response.ok) {
+        throw new Error('Error actualizando configuración')
+      }
+
+      const newConfig = { ...config, ...settings }
+      setConfig(newConfig)
+      await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
+      console.log('✅ Configuración actualizada:', newConfig)
+    } catch (error) {
+      console.error('Error actualizando configuración:', error)
+      throw error
+    }
   }
 
   async function resetConfig() {
-    await saveConfig(defaultConfig)
+    await updateAllSettings(defaultConfig)
   }
 
   return (
@@ -86,7 +202,9 @@ export function AppConfigProvider({ children }: { children: any }) {
       updateStoreName,
       updateStoreLogo,
       updateFontFamily,
-      resetConfig
+      updateAllSettings,
+      resetConfig,
+      refreshConfig
     }}>
       {children}
     </AppConfigContext.Provider>

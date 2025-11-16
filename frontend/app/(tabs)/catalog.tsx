@@ -20,6 +20,15 @@ export default function CatalogScreen() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
 
+  // Log para debug
+  useEffect(() => {
+    console.log('📱 Catálogo - Config actual:', {
+      nombre: config.storeName,
+      tienelogo: !!config.storeLogo,
+      fuente: config.fontFamily
+    })
+  }, [config])
+
   useEffect(() => {
     ;(async () => {
       try {
@@ -115,7 +124,7 @@ export default function CatalogScreen() {
                   <Text numberOfLines={2} style={styles.productName}>{item.name}</Text>
                   <Text style={styles.productCategory}>{item.category?.name || 'Categoría'}</Text>
                   <View style={styles.priceContainer}>
-                    <Text style={styles.productPrice}>${Number(item.price).toLocaleString('es-CL')}</Text>
+                    <Text style={styles.productPrice}>S/ {Number(item.price).toLocaleString('es-PE')}</Text>
                   </View>
                 </View>
               </Pressable>

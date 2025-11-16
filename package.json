@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "powershell -ExecutionPolicy Bypass -File ./start-app.ps1",
-    "start:backend": "npm run dev --prefix ./backend/api",
-    "start:frontend": "npm start --prefix ./frontend",
-    "start:both": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"bgBlue.bold,bgMagenta.bold\" \"npm run start:backend\" \"npm run start:frontend\"",
-    "migrate": "npm run migrate --prefix ./backend/api",
-    "seed": "npm run seed --prefix ./backend/api"
+    "start": "node start-dev.js",
+    "start:backend": "cd backend/api && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "migrate": "cd backend/api && npm run migrate",
+    "seed": "cd backend/api && npm run seed"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

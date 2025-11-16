@@ -46,39 +46,38 @@ cd backend/api && npm install
 cd ../../frontend && npm install
 cd ..
 
-# 3. Configurar base de datos
+# 3. Configurar base de datos y Cloudinary
 # Copia .env.example a .env en backend/api y configura las variables
+# Ver CONFIGURAR_CLOUDINARY.md para configurar la subida de imágenes (OPCIONAL pero recomendado)
 cp backend/api/.env.example backend/api/.env
 
-# 4. Ejecutar migraciones y seed
-npm run migrate
-npm run seed
-
-# 5. Configurar IP del frontend
+# 4. Configurar IP del frontend
 cd frontend
 npm run detect-ip
 cd ..
 ```
 
-### 🎯 Iniciar la Aplicación (Un Solo Comando)
+**Nota:** La base de datos, migraciones y datos iniciales se crean automáticamente al ejecutar `npm start` por primera vez.
+
+### 🎯 Iniciar la Aplicación
 
 ```bash
 # Desde la raíz del proyecto
 npm start
 ```
 
-Este comando iniciará automáticamente:
-1. 🔵 **Backend** (API en puerto 4000) - Se inicia primero
-2. ⏳ **Espera** - Verifica que el backend esté listo (máx. 30 segundos)
-3. 🟣 **Frontend** (Expo con código QR) - Se inicia cuando el backend responde
+**Qué hace:**
+- Inicia backend y frontend en la terminal integrada del editor
+- Backend inicia primero (puerto 4000)
+- Frontend inicia 5 segundos después con el código QR
+- Logs con colores para diferenciar cada proceso
+- Presiona `Ctrl+C` para detener ambos procesos
 
-Verás algo como:
-```
-[1/3] Iniciando Backend...
-[2/3] Esperando a que el backend esté listo...
-✓ Backend listo en http://localhost:4000
-[3/3] Iniciando Frontend...
-```
+**Ventajas:**
+- ✅ Todo en una sola terminal
+- ✅ QR de Expo visible
+- ✅ Logs organizados con colores
+- ✅ Fácil de detener (un solo Ctrl+C)
 
 Luego:
 1. Abre **Expo Go** en tu dispositivo móvil

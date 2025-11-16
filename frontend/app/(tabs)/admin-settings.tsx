@@ -25,7 +25,7 @@ const AVAILABLE_FONTS = [
 
 export default function AdminSettingsScreen() {
   const router = useRouter()
-  const { config, updateStoreName, updateStoreLogo, updateFontFamily } = useAppConfig()
+  const { config, updateAllSettings } = useAppConfig()
   
   // Estados
   const [loading, setLoading] = useState(true)
@@ -44,6 +44,13 @@ export default function AdminSettingsScreen() {
   useEffect(() => {
     checkAdminAccess()
   }, [])
+
+  // Sincronizar valores temporales con el contexto cuando cambia
+  useEffect(() => {
+    setTempStoreName(config.storeName)
+    setTempSelectedFont(config.fontFamily)
+    setTempLogoUri(config.storeLogo)
+  }, [config.storeName, config.fontFamily, config.storeLogo])
 
   // Detectar cambios en la personalización
   useEffect(() => {
@@ -114,27 +121,29 @@ export default function AdminSettingsScreen() {
     try {
       setSaving(true)
       
-      // Guardar todos los cambios
-      await updateStoreName(tempStoreName.trim())
-      await updateStoreLogo(tempLogoUri)
-      await updateFontFamily(tempSelectedFont)
+      // Guardar todos los cambios de una vez
+      console.log('💾 Guardando cambios:', {
+        nombre: tempStoreName.trim(),
+        logo: tempLogoUri,
+        fuente: tempSelectedFont
+      })
       
-      setHasChanges(false)
+      await updateAllSettings({
+        storeName: tempStoreName.trim(),
+        storeLogo: tempLogoUri,
+        fontFamily: tempSelectedFont
+      })
       
-      // Mostrar mensaje y volver al perfil
-      Alert.alert(
-        'Cambios guardados',
-        'Los cambios se han aplicado correctamente. Verás los cambios reflejados en el catálogo.',
-        [
-          { 
-            text: 'OK',
-            onPress: () => router.back()
-          }
-        ]
-      )
+      console.log('✅ Cambios guardados exitosamente en el backend')
+      
+      // Mostrar mensaje de éxito
+      showSuccess('✅ Cambios guardados correctamente')
+      
+      // Los valores temporales se sincronizarán automáticamente con el useEffect
       
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron guardar los cambios')
+      console.error('Error guardando cambios:', error)
+      Alert.alert('Error', 'No se pudieron guardar los cambios. Verifica tu conexión.')
     } finally {
       setSaving(false)
     }
@@ -207,19 +216,49 @@ export default function AdminSettingsScreen() {
             Personaliza la apariencia de tu tienda
           </Text>
           
-          {/* Vista previa */}
+          {/* Vista previa del header */}
           <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Vista previa:</Text>
-            <View style={styles.previewContent}>
-              {tempLogoUri ? (
-                <Image source={{ uri: tempLogoUri }} style={styles.logoPreview} />
-              ) : (
-                <View style={styles.logoPlaceholder}>
-                  <IconSymbol name="photo" size={32} color={FalabellaColors.textMuted} />
+            <Text style={styles.previewLabel}>📱 Vista previa del inicio</Text>
+            <Text style={styles.previewSubLabel}>Así se verá en la pantalla principal</Text>
+            
+            {/* Simulación del header real */}
+            <View style={styles.headerPreview}>
+              <View style={styles.headerPreviewContent}>
+                {tempLogoUri ? (
+                  <Image source={{ uri: tempLogoUri }} style={styles.logoPreviewLarge} />
+                ) : (
+                  <View style={styles.logoPlaceholderLarge}>
+                    <Text style={styles.logoPlaceholderText}>🏪</Text>
+                  </View>
+                )}
+                <Text 
+                  style={[
+                    styles.storeNamePreviewLarge,
+                    { fontFamily: tempSelectedFont !== 'System' ? tempSelectedFont : undefined }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {tempStoreName || 'Tienda'}
+                </Text>
+              </View>
+              
+              {/* Elementos decorativos para simular el header real */}
+              <View style={styles.headerPreviewIcons}>
+                <View style={styles.iconPlaceholder}>
+                  <Text>🔍</Text>
                 </View>
-              )}
-              <Text style={styles.storeNamePreview}>{tempStoreName || 'Tienda'}</Text>
+                <View style={styles.iconPlaceholder}>
+                  <Text>🛒</Text>
+                </View>
+              </View>
             </View>
+            
+            {/* Indicador de cambios */}
+            {hasChanges && (
+              <View style={styles.previewBadge}>
+                <Text style={styles.previewBadgeText}>⚡ Cambios pendientes de guardar</Text>
+              </View>
+            )}
           </View>
 
           {/* Logo */}
@@ -233,7 +272,7 @@ export default function AdminSettingsScreen() {
             </Pressable>
             {tempLogoUri && (
               <Pressable onPress={handleRemoveLogo} style={styles.logoButtonDanger}>
-                <IconSymbol name="trash" size={20} color={FalabellaColors.white} />
+                <Text style={styles.logoIcon}>🗑️</Text>
               </Pressable>
             )}
           </View>
@@ -408,17 +447,94 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   previewContainer: {
-    backgroundColor: FalabellaColors.backgroundGray,
-    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
     padding: 16,
     marginBottom: 20,
+    borderWidth: 2,
+    borderColor: FalabellaColors.border,
   },
   previewLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+    marginBottom: 4,
+  },
+  previewSubLabel: {
+    fontSize: 12,
+    color: FalabellaColors.textMuted,
+    marginBottom: 16,
+  },
+  headerPreview: {
+    backgroundColor: FalabellaColors.white,
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: FalabellaColors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerPreviewContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  logoPreviewLarge: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  logoPlaceholderLarge: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: FalabellaColors.backgroundGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: FalabellaColors.border,
+  },
+  logoPlaceholderText: {
+    fontSize: 24,
+  },
+  storeNamePreviewLarge: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+    flex: 1,
+  },
+  headerPreviewIcons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginLeft: 12,
+  },
+  iconPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: FalabellaColors.backgroundGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewBadge: {
+    marginTop: 12,
+    backgroundColor: '#FFF3E0',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
+  },
+  previewBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: FalabellaColors.textMuted,
-    marginBottom: 12,
-    textTransform: 'uppercase',
+    color: '#E65100',
   },
   previewContent: {
     flexDirection: 'row',
@@ -471,6 +587,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: FalabellaColors.error,
     borderRadius: 8,
+  },
+  logoIcon: {
+    fontSize: 20,
   },
   input: {
     borderWidth: 1,

@@ -41,26 +41,26 @@ export default function CartScreen() {
                 )}
                 <View style={styles.itemDetails}>
                   <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-                  <Text style={styles.itemPrice}>${Number(item.price).toLocaleString('es-CL')}</Text>
+                  <Text style={styles.itemPrice}>S/ {Number(item.price).toLocaleString('es-PE')}</Text>
                   
                   <View style={styles.quantityContainer}>
                     <Pressable 
                       onPress={() => updateQty(item.id, Math.max(1, item.qty - 1))}
                       style={styles.quantityButton}
                     >
-                      <IconSymbol name="minus" size={16} color={FalabellaColors.text} />
+                      <Text style={styles.quantityButtonText}>−</Text>
                     </Pressable>
                     <Text style={styles.quantityText}>{item.qty}</Text>
                     <Pressable 
                       onPress={() => updateQty(item.id, item.qty + 1)}
                       style={styles.quantityButton}
                     >
-                      <IconSymbol name="plus" size={16} color={FalabellaColors.text} />
+                      <Text style={styles.quantityButtonText}>+</Text>
                     </Pressable>
                   </View>
                 </View>
                 <Pressable onPress={() => removeItem(item.id)} style={styles.removeButton}>
-                  <IconSymbol name="trash" size={20} color={FalabellaColors.error} />
+                  <Text style={styles.removeIcon}>🗑️</Text>
                 </Pressable>
               </View>
             )}
@@ -70,7 +70,7 @@ export default function CartScreen() {
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>${total.toLocaleString('es-CL')}</Text>
+              <Text style={styles.summaryValue}>S/ {total.toLocaleString('es-PE')}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Envío</Text>
@@ -79,7 +79,7 @@ export default function CartScreen() {
             <View style={styles.divider} />
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${total.toLocaleString('es-CL')}</Text>
+              <Text style={styles.totalValue}>S/ {total.toLocaleString('es-PE')}</Text>
             </View>
             <Pressable onPress={() => router.push('/checkout')} style={styles.checkoutButton}>
               <Text style={styles.checkoutButtonText}>Continuar con la compra</Text>
@@ -194,23 +194,33 @@ const styles = StyleSheet.create({
   quantityButton: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: FalabellaColors.backgroundGray,
+    borderRadius: 6,
+    backgroundColor: FalabellaColors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: FalabellaColors.border,
+    borderColor: FalabellaColors.primary,
+  },
+  quantityButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: FalabellaColors.white,
   },
   quantityText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: FalabellaColors.text,
-    marginHorizontal: 16,
-    minWidth: 24,
+    marginHorizontal: 12,
+    minWidth: 30,
     textAlign: 'center',
   },
   removeButton: {
     padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeIcon: {
+    fontSize: 24,
   },
   separator: {
     height: 12,
