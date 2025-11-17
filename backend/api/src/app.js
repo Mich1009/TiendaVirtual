@@ -11,7 +11,9 @@ const app = express();
 // Middlewares base
 app.use(helmet());
 app.use(cors({ origin: '*'}));
-app.use(express.json());
+// Aumentar límite para permitir imágenes más grandes (5MB)
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(morgan('dev'));
 
 // Rutas

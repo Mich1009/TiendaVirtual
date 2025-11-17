@@ -34,7 +34,7 @@ router.put('/:key', authRequired, adminOnly, async (req, res, next) => {
     const { value } = req.body;
     
     // Validar que la key sea válida
-    const validKeys = ['store_name', 'store_logo', 'font_family'];
+    const validKeys = ['store_name', 'store_logo', 'font_family', 'display_mode'];
     if (!validKeys.includes(key)) {
       return res.status(400).json({ error: 'Configuración inválida' });
     }
@@ -67,7 +67,7 @@ router.put('/', authRequired, adminOnly, async (req, res, next) => {
   try {
     const updates = req.body; // { store_name: 'X', store_logo: 'Y', ... }
     
-    const validKeys = ['store_name', 'store_logo', 'font_family'];
+    const validKeys = ['store_name', 'store_logo', 'font_family', 'display_mode'];
     const results = {};
     
     for (const [key, value] of Object.entries(updates)) {

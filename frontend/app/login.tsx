@@ -105,6 +105,10 @@ export default function IniciarSesionScreen() {
             </Text>
           </Pressable>
 
+          <Pressable onPress={() => (router as any).push('/recuperar-contrasena')} style={styles.forgotPasswordButton}>
+            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+          </Pressable>
+
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>o</Text>
@@ -254,5 +258,15 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     fontSize: 20,
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  forgotPasswordText: {
+    color: FalabellaColors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 })

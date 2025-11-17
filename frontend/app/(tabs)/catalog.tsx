@@ -54,14 +54,27 @@ export default function CatalogoScreen() {
       {/* Header con logo y búsqueda */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          {config.storeLogo && (
+          {/* Mostrar logo solo si el modo lo permite y hay logo */}
+          {((config as any).displayMode === 'logo' || (config as any).displayMode === 'both' || !(config as any).displayMode) && config.storeLogo && (
             <Image 
               key={config.storeLogo} 
               source={{ uri: config.storeLogo }} 
               style={styles.logoImage} 
             />
           )}
-          <Text style={styles.logo}>{config.storeName}</Text>
+          
+          {/* Mostrar texto solo si el modo lo permite O si no hay logo en modo logo */}
+          {(((config as any).displayMode === 'text' || (config as any).displayMode === 'both' || !(config as any).displayMode) || 
+            ((config as any).displayMode === 'logo' && !config.storeLogo)) && (
+            <Text 
+              style={[
+                styles.logo,
+                { fontFamily: config.fontFamily !== 'System' ? config.fontFamily : undefined }
+              ]}
+            >
+              {config.storeName}
+            </Text>
+          )}
         </View>
         <View style={styles.searchContainer}>
           <IconSymbol name="magnifyingglass" size={20} color={FalabellaColors.textMuted} />

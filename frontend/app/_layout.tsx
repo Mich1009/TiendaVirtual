@@ -7,8 +7,7 @@ import { AppConfigProvider } from '@/context/AppConfigContext'
 import * as SystemUI from 'expo-system-ui'
 import { useEffect } from 'react'
 import { Platform } from 'react-native'
-// Importar configuración global de Alert para compatibilidad web
-import '@/lib/global-alert'
+
 
 export const unstable_settings = {
   anchor: '(tabs)'
@@ -39,6 +38,7 @@ export default function RootLayout() {
             <Stack.Screen name="orders" options={{ title: 'Mis pedidos' }} />
             <Stack.Screen name="login" options={{ title: 'Iniciar sesión' }} />
             <Stack.Screen name="register" options={{ title: 'Registrarse' }} />
+            <Stack.Screen name="recuperar-contrasena" options={{ title: 'Recuperar contraseña' }} />
             <Stack.Screen name="admin-categories" options={{ title: 'Categorías' }} />
             <Stack.Screen name="admin-users" options={{ title: 'Usuarios' }} />
           </Stack>

@@ -17,13 +17,14 @@
  */
 
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { changePassword } from '@/lib/api'
 import { getToken, getUser, clearToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
+import Alert from '@/lib/global-alert'
 
 export default function PerfilScreen() {
   const router = useRouter()

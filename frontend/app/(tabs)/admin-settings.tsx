@@ -7,13 +7,14 @@
  */
 
 import { useState, useEffect } from 'react'
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native'
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useAppConfig } from '@/context/AppConfigContext'
 import { getUser } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { useRouter } from 'expo-router'
+import Alert from '@/lib/global-alert'
 
 // Fuentes disponibles para seleccionar
 const AVAILABLE_FONTS = [
@@ -35,6 +36,7 @@ export default function AdminConfiguracionScreen() {
   const [tempStoreName, setTempStoreName] = useState(config.storeName)
   const [tempSelectedFont, setTempSelectedFont] = useState(config.fontFamily)
   const [tempLogoUri, setTempLogoUri] = useState<string | null>(config.storeLogo)
+  const [tempDisplayMode, setTempDisplayMode] = useState<'logo' | 'text' | 'both'>((config as any).displayMode || 'both')
   const [hasChanges, setHasChanges] = useState(false)
   const [saving, setSaving] = useState(false)
   
@@ -50,16 +52,18 @@ export default function AdminConfiguracionScreen() {
     setTempStoreName(config.storeName)
     setTempSelectedFont(config.fontFamily)
     setTempLogoUri(config.storeLogo)
-  }, [config.storeName, config.fontFamily, config.storeLogo])
+    setTempDisplayMode((config as any).displayMode || 'both')
+  }, [config.storeName, config.fontFamily, config.storeLogo, (config as any).displayMode])
 
   // Detectar cambios en la personalización
   useEffect(() => {
     const changed = 
       tempStoreName !== config.storeName ||
       tempSelectedFont !== config.fontFamily ||
-      tempLogoUri !== config.storeLogo
+      tempLogoUri !== config.storeLogo ||
+      tempDisplayMode !== ((config as any).displayMode || 'both')
     setHasChanges(changed)
-  }, [tempStoreName, tempSelectedFont, tempLogoUri, config])
+  }, [tempStoreName, tempSelectedFont, tempLogoUri, tempDisplayMode, config])
 
   async function checkAdminAccess() {
     try {
@@ -84,12 +88,30 @@ export default function AdminConfiguracionScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.5, // Reducir calidad para comprimir más
+        base64: false,
       })
 
       if (!result.canceled && result.assets[0]) {
-        const uri = result.assets[0].uri
-        setTempLogoUri(uri)
+        const asset = result.assets[0]
+        console.log('📷 Imagen seleccionada:', {
+          tamaño: asset.fileSize ? `${Math.round(asset.fileSize / 1024)}KB` : 'desconocido',
+          dimensiones: `${asset.width}x${asset.height}`
+        })
+        
+        // Si la imagen es muy grande, mostrar advertencia pero permitir continuar
+        if (asset.fileSize && asset.fileSize > 1024 * 1024) { // > 1MB
+          Alert.alert(
+            'Imagen grande',
+            `La imagen es de ${Math.round(asset.fileSize / 1024 / 1024)}MB. Se recomienda usar imágenes más pequeñas para mejor rendimiento.`,
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Usar de todos modos', onPress: () => setTempLogoUri(asset.uri) }
+            ]
+          )
+        } else {
+          setTempLogoUri(asset.uri)
+        }
       }
     } catch (error) {
       console.error('Error seleccionando imagen:', error)
@@ -112,11 +134,30 @@ export default function AdminConfiguracionScreen() {
   }
 
   async function handleSaveChanges() {
-    // Validaciones
-    if (!tempStoreName.trim()) {
-      Alert.alert('Error', 'El nombre de la tienda no puede estar vacío')
+    // Validaciones básicas - solo validar si hay contenido para mostrar
+    if ((tempDisplayMode === 'text' || tempDisplayMode === 'both') && !tempStoreName.trim()) {
+      Alert.alert('Error', 'El nombre de la tienda no puede estar vacío cuando se muestra texto')
       return
     }
+    
+    // Advertencia si selecciona solo logo pero no hay logo (pero permitir guardar)
+    if (tempDisplayMode === 'logo' && !tempLogoUri) {
+      Alert.alert(
+        'Advertencia',
+        'Has seleccionado mostrar solo el logo, pero no has subido ningún logo. ¿Deseas continuar?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Continuar', onPress: () => saveSettings() }
+        ]
+      )
+      return
+    }
+    
+    // Si pasa todas las validaciones, guardar directamente
+    saveSettings()
+  }
+
+  async function saveSettings() {
 
     try {
       setSaving(true)
@@ -125,14 +166,16 @@ export default function AdminConfiguracionScreen() {
       console.log('💾 Guardando cambios:', {
         nombre: tempStoreName.trim(),
         logo: tempLogoUri,
-        fuente: tempSelectedFont
+        fuente: tempSelectedFont,
+        modo: tempDisplayMode
       })
       
       await updateAllSettings({
         storeName: tempStoreName.trim(),
         storeLogo: tempLogoUri,
-        fontFamily: tempSelectedFont
-      })
+        fontFamily: tempSelectedFont,
+        displayMode: tempDisplayMode
+      } as any)
       
       console.log('✅ Cambios guardados exitosamente en el backend')
       
@@ -162,6 +205,7 @@ export default function AdminConfiguracionScreen() {
             setTempStoreName(config.storeName)
             setTempSelectedFont(config.fontFamily)
             setTempLogoUri(config.storeLogo)
+            setTempDisplayMode((config as any).displayMode || 'both')
             setHasChanges(false)
           }
         }
@@ -224,22 +268,42 @@ export default function AdminConfiguracionScreen() {
             {/* Simulación del header real */}
             <View style={styles.headerPreview}>
               <View style={styles.headerPreviewContent}>
-                {tempLogoUri ? (
-                  <Image source={{ uri: tempLogoUri }} style={styles.logoPreviewLarge} />
-                ) : (
-                  <View style={styles.logoPlaceholderLarge}>
-                    <Text style={styles.logoPlaceholderText}>🏪</Text>
-                  </View>
+                {/* Mostrar logo solo si el modo lo permite */}
+                {(tempDisplayMode === 'logo' || tempDisplayMode === 'both') && (
+                  tempLogoUri ? (
+                    <Image source={{ uri: tempLogoUri }} style={styles.logoPreviewLarge} />
+                  ) : (
+                    <View style={styles.logoPlaceholderLarge}>
+                      <Text style={styles.logoPlaceholderText}>🏪</Text>
+                      {tempDisplayMode === 'logo' && (
+                        <Text style={styles.logoPlaceholderSubtext}>Sin logo</Text>
+                      )}
+                    </View>
+                  )
                 )}
-                <Text 
-                  style={[
-                    styles.storeNamePreviewLarge,
-                    { fontFamily: tempSelectedFont !== 'System' ? tempSelectedFont : undefined }
-                  ]}
-                  numberOfLines={1}
-                >
-                  {tempStoreName || 'Tienda'}
-                </Text>
+                
+                {/* Mostrar texto solo si el modo lo permite */}
+                {(tempDisplayMode === 'text' || tempDisplayMode === 'both') && (
+                  <Text 
+                    style={[
+                      styles.storeNamePreviewLarge,
+                      { 
+                        fontFamily: tempSelectedFont !== 'System' ? tempSelectedFont : undefined,
+                        marginLeft: (tempDisplayMode === 'both' && tempLogoUri) ? 12 : 0
+                      }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {tempStoreName || 'Tienda'}
+                  </Text>
+                )}
+                
+                {/* Mensaje si no hay contenido para mostrar */}
+                {tempDisplayMode === 'logo' && !tempLogoUri && (
+                  <Text style={styles.noContentMessage}>
+                    Sube un logo para verlo aquí
+                  </Text>
+                )}
               </View>
               
               {/* Elementos decorativos para simular el header real */}
@@ -261,31 +325,115 @@ export default function AdminConfiguracionScreen() {
             )}
           </View>
 
-          {/* Logo */}
-          <Text style={styles.label}>Logo de la tienda</Text>
-          <View style={styles.logoActions}>
-            <Pressable onPress={handlePickImage} style={styles.logoButton}>
-              <IconSymbol name="photo.badge.plus" size={20} color={FalabellaColors.white} />
-              <Text style={styles.logoButtonText}>
-                {tempLogoUri ? 'Cambiar logo' : 'Subir logo'}
-              </Text>
+          {/* Modo de visualización */}
+          <Text style={styles.label}>¿Qué mostrar en el encabezado?</Text>
+          <View style={styles.displayModeOptions}>
+            <Pressable
+              onPress={() => setTempDisplayMode('logo')}
+              style={[
+                styles.displayModeOption,
+                tempDisplayMode === 'logo' && styles.displayModeOptionSelected
+              ]}
+            >
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>🖼️</Text>
+                <Text style={[
+                  styles.displayModeLabel,
+                  tempDisplayMode === 'logo' && styles.displayModeLabelSelected
+                ]}>
+                  Solo logo
+                </Text>
+                <Text style={styles.displayModeDescription}>
+                  Mostrar únicamente el logo
+                </Text>
+              </View>
+              {tempDisplayMode === 'logo' && (
+                <IconSymbol name="checkmark.circle.fill" size={20} color={FalabellaColors.primary} />
+              )}
             </Pressable>
-            {tempLogoUri && (
-              <Pressable onPress={handleRemoveLogo} style={styles.logoButtonDanger}>
-                <Text style={styles.logoIcon}>🗑️</Text>
-              </Pressable>
-            )}
+
+            <Pressable
+              onPress={() => setTempDisplayMode('text')}
+              style={[
+                styles.displayModeOption,
+                tempDisplayMode === 'text' && styles.displayModeOptionSelected
+              ]}
+            >
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>📝</Text>
+                <Text style={[
+                  styles.displayModeLabel,
+                  tempDisplayMode === 'text' && styles.displayModeLabelSelected
+                ]}>
+                  Solo texto
+                </Text>
+                <Text style={styles.displayModeDescription}>
+                  Mostrar únicamente el nombre
+                </Text>
+              </View>
+              {tempDisplayMode === 'text' && (
+                <IconSymbol name="checkmark.circle.fill" size={20} color={FalabellaColors.primary} />
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => setTempDisplayMode('both')}
+              style={[
+                styles.displayModeOption,
+                tempDisplayMode === 'both' && styles.displayModeOptionSelected
+              ]}
+            >
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>🖼️📝</Text>
+                <Text style={[
+                  styles.displayModeLabel,
+                  tempDisplayMode === 'both' && styles.displayModeLabelSelected
+                ]}>
+                  Logo y texto
+                </Text>
+                <Text style={styles.displayModeDescription}>
+                  Mostrar logo y nombre juntos
+                </Text>
+              </View>
+              {tempDisplayMode === 'both' && (
+                <IconSymbol name="checkmark.circle.fill" size={20} color={FalabellaColors.primary} />
+              )}
+            </Pressable>
           </View>
 
-          {/* Nombre de la tienda */}
-          <Text style={styles.label}>Nombre de la tienda</Text>
-          <TextInput
-            value={tempStoreName}
-            onChangeText={setTempStoreName}
-            placeholder="Ej: Mi Tienda Online"
-            placeholderTextColor={FalabellaColors.textMuted}
-            style={styles.input}
-          />
+          {/* Logo - Solo mostrar si el modo incluye logo */}
+          {(tempDisplayMode === 'logo' || tempDisplayMode === 'both') && (
+            <>
+              <Text style={styles.label}>Logo de la tienda</Text>
+              <View style={styles.logoActions}>
+                <Pressable onPress={handlePickImage} style={styles.logoButton}>
+                  <IconSymbol name="photo.badge.plus" size={20} color={FalabellaColors.white} />
+                  <Text style={styles.logoButtonText}>
+                    {tempLogoUri ? 'Cambiar logo' : 'Subir logo'}
+                  </Text>
+                </Pressable>
+                {tempLogoUri && (
+                  <Pressable onPress={handleRemoveLogo} style={styles.logoButtonDanger}>
+                    <Text style={styles.logoIcon}>🗑️</Text>
+                  </Pressable>
+                )}
+              </View>
+            </>
+          )}
+
+          {/* Nombre de la tienda - Solo mostrar si el modo incluye texto */}
+          {(tempDisplayMode === 'text' || tempDisplayMode === 'both') && (
+            <>
+              <Text style={styles.label}>Nombre de la tienda</Text>
+              <TextInput
+                value={tempStoreName}
+                onChangeText={setTempStoreName}
+                placeholder="Ej: Mi Tienda Online"
+                placeholderTextColor={FalabellaColors.textMuted}
+                style={styles.input}
+              />
+            </>
+          )}
 
           {/* Tipo de letra */}
           <Text style={styles.label}>Tipo de letra</Text>
@@ -664,11 +812,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  passwordButton: {
-    marginTop: 16,
-    backgroundColor: FalabellaColors.primary,
-    paddingVertical: 14,
-    borderRadius: 8,
+  displayModeOptions: {
+    gap: 8,
+    marginBottom: 8,
+  },
+  displayModeOption: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: FalabellaColors.border,
+    borderRadius: 8,
+    padding: 12,
+  },
+  displayModeOptionSelected: {
+    borderColor: FalabellaColors.primary,
+    backgroundColor: '#E3F2FD',
+  },
+  displayModeContent: {
+    flex: 1,
+  },
+  displayModeEmoji: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  displayModeLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: FalabellaColors.text,
+    marginBottom: 2,
+  },
+  displayModeLabelSelected: {
+    color: FalabellaColors.primary,
+  },
+  displayModeDescription: {
+    fontSize: 12,
+    color: FalabellaColors.textMuted,
+  },
+  logoPlaceholderSubtext: {
+    fontSize: 8,
+    color: FalabellaColors.textMuted,
+    marginTop: 2,
+  },
+  noContentMessage: {
+    fontSize: 12,
+    color: FalabellaColors.textMuted,
+    fontStyle: 'italic',
+    marginLeft: 12,
   },
 })

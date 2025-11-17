@@ -303,6 +303,40 @@ export async function changePassword(token: string, oldPassword: string, newPass
   }
 }
 
+/**
+ * Solicita recuperación de contraseña - genera una contraseña temporal
+ * @param email - Email del usuario que quiere recuperar su contraseña
+ * @returns Promise con confirmación y posible contraseña temporal (en desarrollo)
+ */
+export async function forgotPassword(email: string) {
+  try {
+    const url = `${BASE}/auth/forgot`
+    console.log('📧 Requesting password reset for:', email)
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ email }),
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    
+    const data = await res.json().catch(() => ({}))
+    
+    if (!res.ok) {
+      throw new Error((data as any)?.error?.message || `Error ${res.status}`)
+    }
+    
+    console.log('✅ Password reset processed')
+    return data
+  } catch (error: any) {
+    throw handleError(error, 'Error al solicitar recuperación de contraseña')
+  }
+}
+
 // ============================================================================
 // ENDPOINTS DE PEDIDOS
 // ============================================================================

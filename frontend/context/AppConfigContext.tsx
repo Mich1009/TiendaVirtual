@@ -17,6 +17,7 @@ type AppConfig = {
   storeName: string
   storeLogo: string | null
   fontFamily: string
+  displayMode: 'logo' | 'text' | 'both'
 }
 
 type AppConfigContextType = {
@@ -32,7 +33,8 @@ type AppConfigContextType = {
 const defaultConfig: AppConfig = {
   storeName: 'Tienda',
   storeLogo: null,
-  fontFamily: 'System'
+  fontFamily: 'System',
+  displayMode: 'both'
 }
 
 const AppConfigContext = createContext<AppConfigContextType | null>(null)
@@ -54,7 +56,8 @@ export function AppConfigProvider({ children }: { children: any }) {
         const newConfig: AppConfig = {
           storeName: data.store_name || defaultConfig.storeName,
           storeLogo: data.store_logo || defaultConfig.storeLogo,
-          fontFamily: data.font_family || defaultConfig.fontFamily
+          fontFamily: data.font_family || defaultConfig.fontFamily,
+          displayMode: data.display_mode || defaultConfig.displayMode
         }
         setConfig(newConfig)
         // Guardar en cache local
@@ -83,7 +86,7 @@ export function AppConfigProvider({ children }: { children: any }) {
 
   async function updateStoreName(name: string) {
     try {
-      const token = await AsyncStorage.getItem('auth.token')
+      const token = await AsyncStorage.getItem('token')
       const response = await fetch(`${API_URL}/settings/store_name`, {
         method: 'PUT',
         headers: {
@@ -109,7 +112,7 @@ export function AppConfigProvider({ children }: { children: any }) {
 
   async function updateStoreLogo(logo: string | null) {
     try {
-      const token = await AsyncStorage.getItem('auth.token')
+      const token = await AsyncStorage.getItem('token')
       const response = await fetch(`${API_URL}/settings/store_logo`, {
         method: 'PUT',
         headers: {
@@ -135,7 +138,7 @@ export function AppConfigProvider({ children }: { children: any }) {
 
   async function updateFontFamily(font: string) {
     try {
-      const token = await AsyncStorage.getItem('auth.token')
+      const token = await AsyncStorage.getItem('token')
       const response = await fetch(`${API_URL}/settings/font_family`, {
         method: 'PUT',
         headers: {
@@ -161,13 +164,22 @@ export function AppConfigProvider({ children }: { children: any }) {
 
   async function updateAllSettings(settings: Partial<AppConfig>) {
     try {
-      const token = await AsyncStorage.getItem('auth.token')
+      const token = await AsyncStorage.getItem('token')
+      console.log('🔑 Token disponible:', !!token)
+      console.log('🌐 API URL:', API_URL)
+      
+      if (!token) {
+        throw new Error('No hay sesión activa. Por favor, inicia sesión.')
+      }
       
       // Convertir a formato del backend
       const backendSettings: any = {}
       if (settings.storeName !== undefined) backendSettings.store_name = settings.storeName
       if (settings.storeLogo !== undefined) backendSettings.store_logo = settings.storeLogo
       if (settings.fontFamily !== undefined) backendSettings.font_family = settings.fontFamily
+      if (settings.displayMode !== undefined) backendSettings.display_mode = settings.displayMode
+
+      console.log('📤 Enviando configuración:', backendSettings)
 
       const response = await fetch(`${API_URL}/settings`, {
         method: 'PUT',
@@ -178,8 +190,17 @@ export function AppConfigProvider({ children }: { children: any }) {
         body: JSON.stringify(backendSettings)
       })
 
+      console.log('📥 Respuesta del servidor:', response.status, response.statusText)
+
       if (!response.ok) {
-        throw new Error('Error actualizando configuración')
+        if (response.status === 401) {
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+        } else if (response.status === 403) {
+          throw new Error('No tienes permisos para realizar esta acción. Solo los administradores pueden cambiar la configuración.')
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
+        }
       }
 
       const newConfig = { ...config, ...settings }
