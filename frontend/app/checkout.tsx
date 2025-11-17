@@ -8,7 +8,7 @@ import { getToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 
-export default function CheckoutScreen() {
+export default function PagarScreen() {
   const router = useRouter()
   const { items, total, clear } = useCart()
   const [cardNumber, setCardNumber] = useState('')
@@ -30,7 +30,7 @@ export default function CheckoutScreen() {
     })()
   }, [])
 
-  async function handlePay() {
+  async function manejarPago() {
     try {
       setLoading(true)
       setError('')
@@ -204,7 +204,7 @@ export default function CheckoutScreen() {
           </View>
         </View>
         <Pressable 
-          onPress={handlePay} 
+          onPress={manejarPago} 
           disabled={loading} 
           style={[styles.payButton, loading && styles.payButtonDisabled]}
         >

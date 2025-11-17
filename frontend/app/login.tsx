@@ -6,7 +6,7 @@ import { setToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 
-export default function LoginScreen() {
+export default function IniciarSesionScreen() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -14,7 +14,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  async function handleLogin() {
+  async function manejarInicioSesion() {
     try {
       setLoading(true)
       setError('')
@@ -96,7 +96,7 @@ export default function LoginScreen() {
           )}
 
           <Pressable 
-            onPress={handleLogin} 
+            onPress={manejarInicioSesion} 
             disabled={loading} 
             style={[styles.loginButton, loading && styles.loginButtonDisabled]}
           >

@@ -43,7 +43,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS = ['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
-export default function AdminOrdersScreen() {
+export default function AdminPedidosScreen() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)

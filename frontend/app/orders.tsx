@@ -72,16 +72,16 @@ function getStatusInfo(status: string, estimatedDelivery?: string) {
   }
 }
 
-export default function OrdersScreen() {
+export default function PedidosScreen() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    loadOrders()
+    cargarPedidos()
   }, [])
 
-  async function loadOrders() {
+  async function cargarPedidos() {
     try {
       setLoading(true)
       const token = await getToken()

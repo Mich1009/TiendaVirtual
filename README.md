@@ -1,83 +1,198 @@
-# 🛍️ Tienda Virtual - Aplicación Móvil
+# 🛍️ Tienda Virtual
 
-Aplicación móvil completa de comercio electrónico con diseño inspirado en **Falabella**, desarrollada con **React Native** y **Expo**.
+Aplicación móvil completa de e-commerce desarrollada con **React Native + Expo** y **Node.js**, con diseño inspirado en Falabella.
 
----
+## ✨ Características Principales
 
-## ✨ Características
+### 👥 Sistema de Usuarios
+- **🔐 Autenticación JWT** con dos roles:
+  - **CUSTOMER**: Clientes (comprar, ver pedidos, gestionar perfil)
+  - **ADMIN**: Administradores (gestión completa + personalización)
 
-- 🎨 **Diseño Profesional** - Inspirado en Falabella con colores corporativos (#00A650)
-- 🛒 **Carrito de Compras** - Gestión completa de productos con persistencia
-- 🔍 **Búsqueda y Filtros** - Búsqueda en tiempo real y filtrado por categorías
-- 🔐 **Autenticación con Roles** - Sistema de login con JWT y dos roles:
-  - **CUSTOMER**: Cliente normal (puede comprar y ver sus pedidos)
-  - **ADMIN**: Administrador (acceso completo al sistema)
-- ⚙️ **Panel de Administrador** ⭐ NUEVO - Configuración personalizada de la tienda:
-  - 🖼️ Subir y gestionar logo de la aplicación
-  - ✏️ Cambiar nombre de la tienda
-  - 🔤 Personalizar tipo de letra
-  - 🔒 Gestión de contraseña del admin
-- 💳 **Checkout** - Proceso de compra completo con validación
-- 📦 **Historial de Pedidos** - Seguimiento de todas tus compras
-- 👤 **Perfil de Usuario** - Gestión de datos personales, dirección y contraseña
-- 📱 **Compatible con Expo Go** - Prueba en tu dispositivo al instante
+### � Funcitonalidades de Compra
+- **Catálogo de productos** con imágenes y categorías
+- **Carrito de compras** persistente
+- **Búsqueda en tiempo real** y filtros por categoría
+- **Checkout completo** con datos de envío y pago
+- **Historial de pedidos** con seguimiento de estados
 
----
+### ⚙️ Panel de Administración
+- **📦 Gestión de productos** (CRUD completo con imágenes)
+- **📂 Gestión de categorías**
+- **👥 Gestión de usuarios**
+- **📋 Gestión de pedidos** y cambio de estados
+- **🎨 Personalización de la tienda**:
+  - Cambiar logo de la aplicación
+  - Modificar nombre de la tienda
+  - Seleccionar tipo de fuente
 
-## 🚀 Inicio Rápido
+### 📱 Experiencia de Usuario
+- **Diseño profesional** con colores corporativos de Falabella
+- **Estados de pedidos** con fechas estimadas de entrega
+- **Subida de imágenes** a Cloudinary
+- **Moneda peruana** (Soles - S/)
+- **Compatible con Expo Go**
 
-### Requisitos Previos
+## 🚀 Instalación y Configuración
 
-1. **Node.js v18 o superior** - [Descargar aquí](https://nodejs.org/)
-2. **Expo Go** en tu dispositivo móvil:
-   - [iOS - App Store](https://apps.apple.com/app/expo-go/id982107779)
-   - [Android - Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+### Requisitos
+- **Node.js v18+** - [Descargar](https://nodejs.org/)
+- **PostgreSQL** - [Descargar](https://www.postgresql.org/download/)
+- **Expo Go** en tu móvil - [iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
 
-### ⚡ Instalación y Configuración (Solo la Primera Vez)
-
+### Instalación
 ```bash
-# 1. Clonar el repositorio
+# 1. Clonar e instalar dependencias
 git clone <tu-repositorio>
 cd TiendaVirtual
-
-# 2. Instalar todas las dependencias
 npm install
-cd backend/api && npm install
-cd ../../frontend && npm install
-cd ..
 
-# 3. Configurar base de datos y Cloudinary
-# Copia .env.example a .env en backend/api y configura las variables
-# Ver CONFIGURAR_CLOUDINARY.md para configurar la subida de imágenes (OPCIONAL pero recomendado)
-cp backend/api/.env.example backend/api/.env
+# 2. Configurar base de datos
+cd backend/api
+cp .env.example .env
+# Edita .env con tus credenciales de PostgreSQL
 
-# 4. Configurar IP del frontend
-cd frontend
+# 3. Configurar IP del frontend
+cd ../../frontend
 npm run detect-ip
 cd ..
 ```
 
-**Nota:** La base de datos, migraciones y datos iniciales se crean automáticamente al ejecutar `npm start` por primera vez.
+### Configuración de Base de Datos
+Edita `backend/api/.env`:
+```env
+DATABASE_URL=postgres://usuario:contraseña@localhost:5432/tiendavirtual
+JWT_SECRET=tu-secreto-jwt
+```
 
-### 🎯 Iniciar la Aplicación
+### Configuración de Cloudinary (Opcional)
+Para subir imágenes de productos, configura en `backend/api/.env`:
+```env
+CLOUDINARY_CLOUD_NAME=tu-cloud-name
+CLOUDINARY_API_KEY=tu-api-key
+CLOUDINARY_API_SECRET=tu-api-secret
+```
+
+## 🎯 Iniciar la Aplicación
 
 ```bash
-# Desde la raíz del proyecto
 npm start
 ```
 
 **Qué hace:**
-- Inicia backend y frontend en la terminal integrada del editor
-- Backend inicia primero (puerto 4000)
-- Frontend inicia 5 segundos después con el código QR
-- Logs con colores para diferenciar cada proceso
-- Presiona `Ctrl+C` para detener ambos procesos
+- ✅ Inicia backend (puerto 4000) y frontend en paralelo
+- ✅ Crea automáticamente la base de datos y tablas
+- ✅ Inserta datos de prueba (usuarios, productos, categorías)
+- ✅ Muestra el código QR para Expo Go
+- ✅ Logs con colores (azul=backend, verde=frontend)
 
-**Ventajas:**
-- ✅ Todo en una sola terminal
-- ✅ QR de Expo visible
-- ✅ Logs organizados con colores
-- ✅ Fácil de detener (un solo Ctrl+C)
+**Detener:** Presiona `Ctrl+C`
+
+## 🔑 Credenciales de Prueba
+
+### Administrador
+- **Email:** `admin@tienda.com`
+- **Contraseña:** `admin123`
+- **Acceso:** Panel completo de administración
+
+### Cliente
+- **Email:** `cliente@test.com`
+- **Contraseña:** `cliente123`
+- **Acceso:** Compras y gestión de perfil
+
+## 📱 Cómo Usar
+
+### Como Cliente
+1. **Registrarse/Iniciar sesión** con credenciales de cliente
+2. **Explorar productos** en el catálogo
+3. **Agregar al carrito** productos deseados
+4. **Realizar checkout** con datos de envío y pago
+5. **Ver pedidos** en el perfil con seguimiento de estados
+
+### Como Administrador
+1. **Iniciar sesión** con credenciales de admin
+2. **Gestionar productos** - Crear, editar, eliminar con imágenes
+3. **Gestionar categorías** - Organizar el catálogo
+4. **Ver pedidos** - Cambiar estados y gestionar entregas
+5. **Personalizar tienda** - Logo, nombre, fuente desde el perfil
+
+## 🏗️ Arquitectura Técnica
+
+### Backend (Node.js + Express)
+- **Base de datos:** PostgreSQL con Knex.js
+- **Autenticación:** JWT con roles
+- **Subida de archivos:** Cloudinary
+- **Migraciones:** Automáticas al iniciar
+- **API REST:** Endpoints organizados por funcionalidad
+
+### Frontend (React Native + Expo)
+- **Navegación:** Expo Router con tabs diferenciados por rol
+- **Estado:** Context API para autenticación y configuración
+- **Estilos:** StyleSheet con tema de Falabella
+- **Imágenes:** Expo ImagePicker + Cloudinary
+- **Persistencia:** AsyncStorage para cache local
+
+### Estructura de Archivos
+```
+TiendaVirtual/
+├── backend/api/          # API Node.js
+│   ├── src/
+│   │   ├── routes/       # Endpoints REST
+│   │   ├── models/       # Modelos de datos
+│   │   ├── middlewares/  # Autenticación, errores
+│   │   └── jobs/         # Tareas automáticas
+│   ├── migrations/       # Esquema de base de datos
+│   └── seeds/           # Datos de prueba
+├── frontend/            # App React Native
+│   ├── app/             # Pantallas (Expo Router)
+│   ├── components/      # Componentes reutilizables
+│   ├── context/         # Estado global
+│   └── lib/             # Utilidades y API client
+└── start-dev.js         # Script de inicio
+```
+
+## 🔄 Estados de Pedidos
+
+Los pedidos siguen este flujo automático:
+1. **PENDING** - Pedido creado (no usado actualmente)
+2. **PAID** - Pedido pagado → Estado "En camino" 📦
+3. **DELIVERED** - Entregado → Estado "Entregado" ✅ (automático después de fecha estimada)
+4. **CANCELLED** - Cancelado → Estado "Cancelado" ❌
+
+**Entrega:** Los pedidos se entregan **1 día después** de la fecha de compra.
+
+## 🛠️ Scripts Disponibles
+
+```bash
+# Desarrollo
+npm start              # Iniciar aplicación completa
+npm run start:backend  # Solo backend
+npm run start:frontend # Solo frontend
+
+# Base de datos
+npm run migrate        # Ejecutar migraciones
+npm run seed          # Insertar datos de prueba
+```
+
+## 📝 Notas Importantes
+
+- **Primera ejecución:** La base de datos se crea automáticamente
+- **Cloudinary:** Opcional, sin él las imágenes se ingresan por URL
+- **IP del frontend:** Se detecta automáticamente, pero puedes cambiarla en `frontend/app.json`
+- **Moneda:** Configurada para Perú (Soles - S/)
+- **Zona horaria:** Configurada para Perú (es-PE)
+
+## 🤝 Contribuir
+
+1. Fork del proyecto
+2. Crear rama para feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit cambios (`git commit -m 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request
+
+## 📄 Licencia
+
+Este proyecto es de uso educativo y demostrativo.
 
 Luego:
 1. Abre **Expo Go** en tu dispositivo móvil

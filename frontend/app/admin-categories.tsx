@@ -22,7 +22,7 @@ type Category = {
   slug: string
 }
 
-export default function AdminCategoriesScreen() {
+export default function AdminCategoriasScreen() {
   const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,10 +30,10 @@ export default function AdminCategoriesScreen() {
   const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
-    loadCategories()
+    cargarCategorias()
   }, [])
 
-  async function loadCategories() {
+  async function cargarCategorias() {
     try {
       setLoading(true)
       const data = await getCategories()
@@ -45,7 +45,7 @@ export default function AdminCategoriesScreen() {
     }
   }
 
-  async function handleCreate() {
+  async function manejarCrear() {
     Alert.prompt(
       'Nueva Categoría',
       'Ingresa el nombre de la categoría',
@@ -68,7 +68,7 @@ export default function AdminCategoriesScreen() {
 
               await createCategory(token, { name: name.trim() })
               Alert.alert('Éxito', 'Categoría creada correctamente')
-              loadCategories()
+              cargarCategorias()
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Error al crear categoría')
             }
@@ -79,7 +79,7 @@ export default function AdminCategoriesScreen() {
     )
   }
 
-  async function handleUpdate(category: Category) {
+  async function manejarActualizar(category: Category) {
     if (!editingName.trim()) {
       Alert.alert('Error', 'El nombre no puede estar vacío')
       return
@@ -96,13 +96,13 @@ export default function AdminCategoriesScreen() {
       Alert.alert('Éxito', 'Categoría actualizada correctamente')
       setEditingId(null)
       setEditingName('')
-      loadCategories()
+      cargarCategorias()
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Error al actualizar categoría')
     }
   }
 
-  async function handleDelete(category: Category) {
+  async function manejarEliminar(category: Category) {
     Alert.alert(
       'Confirmar eliminación',
       `¿Estás seguro de eliminar "${category.name}"?\n\nLos productos de esta categoría quedarán sin categoría.`,
@@ -121,7 +121,7 @@ export default function AdminCategoriesScreen() {
 
               await deleteCategory(token, category.id)
               Alert.alert('Éxito', 'Categoría eliminada correctamente')
-              loadCategories()
+              cargarCategorias()
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Error al eliminar categoría')
             }
@@ -156,7 +156,7 @@ export default function AdminCategoriesScreen() {
           <IconSymbol name="chevron.left" size={24} color={FalabellaColors.primary} />
         </Pressable>
         <Text style={styles.title}>Categorías</Text>
-        <Pressable onPress={handleCreate} style={styles.addButton}>
+        <Pressable onPress={manejarCrear} style={styles.addButton}>
           <IconSymbol name="plus" size={24} color={FalabellaColors.primary} />
         </Pressable>
       </View>
@@ -186,7 +186,7 @@ export default function AdminCategoriesScreen() {
                   >
                     <IconSymbol name="xmark" size={20} color={FalabellaColors.error} />
                   </Pressable>
-                  <Pressable onPress={() => handleUpdate(item)} style={styles.editButton}>
+                  <Pressable onPress={() => manejarActualizar(item)} style={styles.editButton}>
                     <IconSymbol name="checkmark" size={20} color={FalabellaColors.success} />
                   </Pressable>
                 </View>
@@ -207,7 +207,7 @@ export default function AdminCategoriesScreen() {
                   >
                     <Text style={styles.actionIcon}>✏️</Text>
                   </Pressable>
-                  <Pressable onPress={() => handleDelete(item)} style={styles.actionButton}>
+                  <Pressable onPress={() => manejarEliminar(item)} style={styles.actionButton}>
                     <Text style={styles.actionIcon}>🗑️</Text>
                   </Pressable>
                 </View>
@@ -219,7 +219,7 @@ export default function AdminCategoriesScreen() {
           <View style={styles.emptyContainer}>
             <IconSymbol name="folder" size={64} color={FalabellaColors.textMuted} />
             <Text style={styles.emptyText}>No hay categorías</Text>
-            <Pressable onPress={handleCreate} style={styles.emptyButton}>
+            <Pressable onPress={manejarCrear} style={styles.emptyButton}>
               <Text style={styles.emptyButtonText}>Crear primera categoría</Text>
             </Pressable>
           </View>

@@ -6,24 +6,29 @@ import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 
 /**
- * Obtiene la URL base del API desde app.json (extra.API_URL)
- * Esta es la configuración principal que debes actualizar con tu IP local
+ * Obtiene las URLs del API desde app.json
  */
-const API_URL_FROM_CONFIG = ((Constants?.expoConfig?.extra as any)?.API_URL as string) || ''
+const extra = (Constants?.expoConfig?.extra as any) || {}
+const API_URL_WEB = extra.API_URL || 'http://localhost:4000/v1'
+const API_URL_MOBILE = extra.API_URL_MOBILE || 'http://localhost:4000/v1'
 
-// Fallback solo si no hay configuración en app.json
-const fallbackURL = Platform.select({ 
-  android: 'http://10.0.2.2:4000/v1',  // IP especial para emulador Android
-  ios: 'http://localhost:4000/v1',      // localhost para iOS
-  default: 'http://localhost:4000/v1'   // fallback
+// Seleccionar URL según la plataforma
+const API_URL = Platform.select({
+  web: API_URL_WEB,           // Web usa localhost
+  android: API_URL_MOBILE,    // Android usa IP de la red
+  ios: API_URL_MOBILE,        // iOS usa IP de la red
+  default: API_URL_WEB        // Fallback a web
 }) as string
 
-// URL base final que se usará para todas las peticiones
-// Nota: Ya incluye /v1 al final
-export const API_URL = API_URL_FROM_CONFIG || fallbackURL
+// Log para debugging
+console.log('🌐 Plataforma:', Platform.OS)
+console.log('🔗 API URL:', API_URL)
 
 // Remover /v1 del final para obtener la URL base sin versión
 export const API_BASE_URL = API_URL.replace(/\/v1$/, '')
+
+// URL final que se usará para todas las peticiones
+export { API_URL }
 
 // Otras configuraciones
 export const APP_NAME = 'Tienda Virtual'

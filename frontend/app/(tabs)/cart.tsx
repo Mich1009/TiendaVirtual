@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 
-export default function CartScreen() {
+export default function CarritoScreen() {
   const router = useRouter()
   const { items, updateQty, removeItem, total } = useCart()
   const empty = useMemo(() => items.length === 0, [items])

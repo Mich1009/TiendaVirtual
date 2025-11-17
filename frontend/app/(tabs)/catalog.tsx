@@ -10,7 +10,7 @@ import { useAppConfig } from '@/context/AppConfigContext'
 type Product = { id: number; name: string; description?: string; price: number; images?: { url: string }[]; category?: { id: number; name: string; slug: string } }
 type Category = { id: number; name: string; slug: string }
 
-export default function CatalogScreen() {
+export default function CatalogoScreen() {
   const router = useRouter()
   const { config } = useAppConfig()
   const [items, setItems] = useState<Product[]>([])

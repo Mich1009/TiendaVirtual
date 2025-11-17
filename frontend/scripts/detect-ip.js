@@ -65,10 +65,14 @@ function updateAppJson(ip) {
   const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
   
   appJson.expo.extra = appJson.expo.extra || {};
-  appJson.expo.extra.API_URL = `http://${ip}:4000/v1`;
+  // Web usa localhost, móvil usa la IP detectada
+  appJson.expo.extra.API_URL = 'http://localhost:4000/v1';
+  appJson.expo.extra.API_URL_MOBILE = `http://${ip}:4000/v1`;
   
   fs.writeFileSync(appJsonPath, JSON.stringify(appJson, null, 2));
-  console.log(`✅ app.json actualizado con IP: ${ip}`);
+  console.log(`✅ app.json actualizado:`);
+  console.log(`   Web: localhost:4000`);
+  console.log(`   Móvil: ${ip}:4000`);
 }
 
 // Función principal

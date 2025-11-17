@@ -23,7 +23,7 @@ const AVAILABLE_FONTS = [
   { label: 'Monospace', value: 'monospace' },
 ]
 
-export default function AdminSettingsScreen() {
+export default function AdminConfiguracionScreen() {
   const router = useRouter()
   const { config, updateAllSettings } = useAppConfig()
   

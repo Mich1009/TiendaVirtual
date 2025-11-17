@@ -25,7 +25,7 @@ type User = {
   createdAt: string
 }
 
-export default function AdminUsersScreen() {
+export default function AdminUsuariosScreen() {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,10 +42,10 @@ export default function AdminUsersScreen() {
   })
 
   useEffect(() => {
-    loadUsers()
+    cargarUsuarios()
   }, [])
 
-  async function loadUsers() {
+  async function cargarUsuarios() {
     try {
       setLoading(true)
       const token = await getToken()
@@ -64,7 +64,7 @@ export default function AdminUsersScreen() {
     }
   }
 
-  function openCreateModal() {
+  function abrirModalCrear() {
     setEditingUser(null)
     setFormData({
       name: '',
@@ -75,7 +75,7 @@ export default function AdminUsersScreen() {
     setModalVisible(true)
   }
 
-  function openEditModal(user: User) {
+  function abrirModalEditar(user: User) {
     setEditingUser(user)
     setFormData({
       name: user.name,
@@ -86,7 +86,7 @@ export default function AdminUsersScreen() {
     setModalVisible(true)
   }
 
-  async function handleSave() {
+  async function manejarGuardar() {
     try {
       if (!formData.name || !formData.email) {
         Alert.alert('Error', 'Completa nombre y email')
@@ -137,13 +137,13 @@ export default function AdminUsersScreen() {
       }
 
       setModalVisible(false)
-      loadUsers()
+      cargarUsuarios()
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Error al guardar usuario')
     }
   }
 
-  async function handleDelete(user: User) {
+  async function manejarEliminar(user: User) {
     Alert.alert(
       'Confirmar eliminación',
       `¿Estás seguro de eliminar a "${user.name}"?\n\nEsta acción no se puede deshacer.`,
@@ -162,7 +162,7 @@ export default function AdminUsersScreen() {
               
               await deleteUser(token, user.id)
               Alert.alert('Éxito', 'Usuario eliminado correctamente')
-              loadUsers()
+              cargarUsuarios()
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Error al eliminar usuario')
             }
@@ -197,7 +197,7 @@ export default function AdminUsersScreen() {
           <IconSymbol name="chevron.left" size={24} color={FalabellaColors.primary} />
         </Pressable>
         <Text style={styles.title}>Usuarios</Text>
-        <Pressable onPress={openCreateModal} style={styles.addButton}>
+        <Pressable onPress={abrirModalCrear} style={styles.addButton}>
           <IconSymbol name="plus" size={24} color={FalabellaColors.primary} />
         </Pressable>
       </View>
@@ -211,7 +211,7 @@ export default function AdminUsersScreen() {
             placeholderTextColor={FalabellaColors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onSubmitEditing={loadUsers}
+            onSubmitEditing={cargarUsuarios}
             style={styles.searchInput}
           />
         </View>
@@ -247,11 +247,11 @@ export default function AdminUsersScreen() {
               </View>
             </View>
             <View style={styles.userActions}>
-              <Pressable onPress={() => openEditModal(item)} style={styles.editButton}>
+              <Pressable onPress={() => abrirModalEditar(item)} style={styles.editButton}>
                 <Text style={styles.actionIcon}>✏️</Text>
                 <Text style={styles.actionButtonText}>Editar</Text>
               </Pressable>
-              <Pressable onPress={() => handleDelete(item)} style={styles.deleteButton}>
+              <Pressable onPress={() => manejarEliminar(item)} style={styles.deleteButton}>
                 <Text style={styles.actionIcon}>🗑️</Text>
                 <Text style={styles.actionButtonText}>Eliminar</Text>
               </Pressable>
@@ -377,7 +377,7 @@ export default function AdminUsersScreen() {
               <Pressable onPress={() => setModalVisible(false)} style={styles.cancelButton}>
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </Pressable>
-              <Pressable onPress={handleSave} style={styles.saveButton}>
+              <Pressable onPress={manejarGuardar} style={styles.saveButton}>
                 <Text style={styles.saveButtonText}>Guardar</Text>
               </Pressable>
             </View>
@@ -637,5 +637,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: FalabellaColors.white,
+  },
+  actionIcon: {
+    fontSize: 16,
   },
 })

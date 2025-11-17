@@ -5,7 +5,7 @@ import { register } from '@/lib/api'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 
-export default function RegisterScreen() {
+export default function RegistrarseScreen() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -16,7 +16,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  async function handleRegister() {
+  async function manejarRegistro() {
     try {
       setLoading(true)
       setError('')
@@ -143,7 +143,7 @@ export default function RegisterScreen() {
           )}
 
           <Pressable 
-            onPress={handleRegister} 
+            onPress={manejarRegistro} 
             disabled={loading} 
             style={[styles.registerButton, loading && styles.registerButtonDisabled]}
           >

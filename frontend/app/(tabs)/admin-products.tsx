@@ -35,7 +35,7 @@ type Category = {
   slug: string
 }
 
-export default function AdminProductsScreen() {
+export default function AdminProductosScreen() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])

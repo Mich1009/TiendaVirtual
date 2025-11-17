@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { View, Text, Image, Pressable, ActivityIndicator, ScrollView, StyleSheet, Alert } from 'react-native'
+import { View, Text, Image, Pressable, ActivityIndicator, ScrollView, StyleSheet } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { getProduct } from '@/lib/api'
 import { useCart } from '@/context/CartContext'
 import { getToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
+import { Alert } from '@/components/ui/alert'
 
 type Product = { id: number; name: string; description?: string; price: number; images?: { url: string }[]; stock?: number }
 
@@ -33,11 +34,19 @@ export default function ProductDetail() {
   }, [id])
 
   const handleAddToCart = async () => {
-    if (!product) return
+    console.log('🛒 Botón agregar al carrito presionado')
+    
+    if (!product) {
+      console.log('❌ No hay producto')
+      return
+    }
     
     // Verificar si el usuario está autenticado
     const token = await getToken()
+    console.log('🔑 Token:', token ? 'Existe' : 'No existe')
+    
     if (!token) {
+      console.log('⚠️ Usuario no autenticado, mostrando alert')
       Alert.alert(
         'Inicia sesión',
         'Debes iniciar sesión para agregar productos al carrito',
@@ -45,13 +54,17 @@ export default function ProductDetail() {
           { text: 'Cancelar', style: 'cancel' },
           { 
             text: 'Iniciar sesión',
-            onPress: () => router.push('/login')
+            onPress: () => {
+              console.log('🔄 Redirigiendo a login')
+              router.push('/login')
+            }
           }
         ]
       )
       return
     }
     
+    console.log('✅ Agregando producto al carrito:', product.name)
     const img = product.images?.[0]?.url || 'https://via.placeholder.com/800x500?text=Producto'
     addItem({ id: product.id, name: product.name, price: product.price, img, qty: 1 })
     setAdded(true)

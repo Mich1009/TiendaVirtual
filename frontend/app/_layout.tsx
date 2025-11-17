@@ -7,6 +7,8 @@ import { AppConfigProvider } from '@/context/AppConfigContext'
 import * as SystemUI from 'expo-system-ui'
 import { useEffect } from 'react'
 import { Platform } from 'react-native'
+// Importar configuración global de Alert para compatibilidad web
+import '@/lib/global-alert'
 
 export const unstable_settings = {
   anchor: '(tabs)'

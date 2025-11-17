@@ -15,7 +15,7 @@ import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { getToken } from '@/lib/auth'
 
-export default function AdminDashboardScreen() {
+export default function AdminPanelScreen() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
