@@ -2,6 +2,8 @@
 
 Aplicación móvil completa de e-commerce desarrollada con **React Native + Expo** y **Node.js**, con diseño inspirado en Falabella.
 
+---
+
 ## ✨ Características Principales
 
 ### 👥 Sistema de Usuarios
@@ -52,9 +54,10 @@ cd backend/api
 cp .env.example .env
 # Edita .env con tus credenciales de PostgreSQL
 
-# 3. Configurar IP del frontend
+# 3. Configurar IP del frontend para móvil
 cd ../../frontend
-npm run detect-ip
+# Edita app.json y cambia "API_URL_MOBILE" con tu IP local
+# Ejemplo: "API_URL_MOBILE": "http://192.168.1.100:4000/v1"
 cd ..
 ```
 
@@ -75,16 +78,37 @@ CLOUDINARY_API_SECRET=tu-api-secret
 
 ## 🎯 Iniciar la Aplicación
 
+### Opción 1: Con Túnel de Expo (Recomendado) 🌍
+
 ```bash
 npm start
 ```
 
+**Funciona desde CUALQUIER dispositivo móvil sin estar en la misma red WiFi**
+
 **Qué hace:**
-- ✅ Inicia backend (puerto 4000) y frontend en paralelo
-- ✅ Crea automáticamente la base de datos y tablas
-- ✅ Inserta datos de prueba (usuarios, productos, categorías)
-- ✅ Muestra el código QR para Expo Go
-- ✅ Logs con colores (azul=backend, verde=frontend)
+- ✅ Inicia backend (puerto 4000)
+- ✅ Inicia frontend con túnel de Expo
+- ✅ Genera QR que funciona desde cualquier lugar del mundo
+- ✅ No requiere configuración adicional
+
+**Ventajas:**
+- Túnel integrado de Expo (oficial y confiable)
+- No necesitas estar en la misma red WiFi
+- Funciona desde cualquier celular con internet
+- Ideal para desarrollo y demos
+
+**Nota:** La primera vez puede tardar un poco en crear el túnel
+
+### Opción 2: Comandos Separados
+
+```bash
+# Terminal 1: Backend
+npm run backend
+
+# Terminal 2: Frontend con túnel
+npm run frontend
+```
 
 **Detener:** Presiona `Ctrl+C`
 
@@ -165,9 +189,9 @@ Los pedidos siguen este flujo automático:
 
 ```bash
 # Desarrollo
-npm start              # Iniciar aplicación completa
-npm run start:backend  # Solo backend
-npm run start:frontend # Solo frontend
+npm start              # Inicia backend + frontend con túnel de Expo 🌍
+npm run backend        # Solo backend
+npm run frontend       # Solo frontend con túnel
 
 # Base de datos
 npm run migrate        # Ejecutar migraciones
@@ -379,22 +403,16 @@ npm run seed
 
 ## 📱 Configuración del Frontend
 
-### Configurar IP del Backend
-
-**Opción 1: Automática (Recomendado)**
-```bash
-cd frontend
-npm run detect-ip
-```
-
-**Opción 2: Manual**
+### Configurar IP del Backend para Móvil
 
 Edita `frontend/app.json`:
 ```json
 {
   "expo": {
     "extra": {
-      "API_URL": "http://TU_IP_LOCAL:4000/v1"
+      "API_URL": "http://localhost:4000/v1",
+      "API_URL_MOBILE": "http://TU_IP_LOCAL:4000/v1",
+      "API_URL_PRODUCTION": "https://tu-backend.railway.app/v1"
     }
   }
 }
@@ -408,22 +426,32 @@ Para encontrar tu IP:
 
 ## 🐛 Solución de Problemas
 
-### 1. Error "Network Request Failed"
+### 1. Error "Network Request Failed" en Móvil
 
-**Causa:** La app no puede conectarse al backend.
+**Causa:** La app no puede conectarse al backend desde tu celular.
 
-**Solución:**
+**Solución Rápida (Recomendada):**
 ```bash
-# 1. Verifica que el backend esté corriendo
-npm run start:backend
-
-# 2. Configura la IP correcta
-cd frontend
-npm run detect-ip
-
-# 3. Reinicia desde la raíz
-cd ..
+# Usa el modo con túnel público
 npm start
+
+# Espera a que aparezca la URL pública
+# Presiona 'r' en la terminal de Expo para recargar
+```
+
+**Solución Alternativa (Red Local):**
+```bash
+# 1. Usa el modo local
+npm run start:local
+
+# 2. Encuentra tu IP local
+ipconfig  # Windows
+ifconfig  # Mac/Linux
+
+# 3. Actualiza frontend/app.json con tu IP en "API_URL_MOBILE"
+# Ejemplo: "API_URL_MOBILE": "http://192.168.1.100:4000/v1"
+
+# 4. Asegúrate que tu celular esté en la misma red WiFi
 ```
 
 
@@ -494,22 +522,17 @@ cd backend/api && npm install
 cd ../../frontend && npm install
 
 # 2. Configurar base de datos
-cd ..
+cd ../..
 npm run migrate
 npm run seed
 
-# 3. Configurar IP
-cd frontend
-npm run detect-ip
-
-# 4. Iniciar todo
-cd ..
+# 3. Iniciar todo
 npm start
 ```
 
 ### Días Siguientes
 ```bash
-# Solo ejecuta
+# Un solo comando
 npm start
 ```
 

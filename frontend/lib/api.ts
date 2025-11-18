@@ -25,19 +25,20 @@ const fallbackURL = Platform.select({
   default: 'http://localhost:4000/v1'   // fallback
 }) as string
 
+// Verificar variable de entorno primero
+const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL
+
 // URL base final que se usará para todas las peticiones
-const BASE = API_URL || fallbackURL
+const BASE = ENV_API_URL || API_URL || fallbackURL
 
-// Log de la URL que se está usando (útil para debugging)
-console.log('🌐 API Base URL:', BASE)
-console.log('📍 Configurado en app.json:', API_URL || 'NO CONFIGURADO')
-
-// Verificar que la URL esté configurada correctamente
-if (!API_URL) {
-  console.warn('⚠️  API_URL no está configurado en app.json')
-  console.warn('   Edita frontend/app.json y agrega tu IP local en extra.API_URL')
-  console.warn('   Ejemplo: "API_URL": "http://192.168.1.100:4000/v1"')
-}
+// Log detallado de la URL que se está usando (útil para debugging)
+console.log('🌐 ========== API CONFIGURATION ==========')
+console.log('🌐 Platform:', Platform.OS)
+console.log('🌐 ENV API URL:', ENV_API_URL || 'NO CONFIGURADO')
+console.log('🌐 app.json API_URL:', API_URL || 'NO CONFIGURADO')
+console.log('🌐 Fallback URL:', fallbackURL)
+console.log('🌐 FINAL BASE URL:', BASE)
+console.log('🌐 =========================================')
 
 // ============================================================================
 // FUNCIONES AUXILIARES
@@ -62,10 +63,14 @@ function headers(token?: string): Record<string, string> {
  */
 function handleError(error: any, defaultMessage: string): Error {
   console.error('❌ API Error:', error)
+  console.error('❌ Error type:', typeof error)
+  console.error('❌ Error keys:', Object.keys(error))
+  console.error('❌ Error stack:', error.stack)
   
   // Error de red (sin conexión, timeout, etc)
   if (error.message === 'Network request failed' || error.message === 'Failed to fetch') {
-    return new Error('No se puede conectar al servidor. Verifica tu conexión a internet y que el backend esté ejecutándose.')
+    const apiUrl = BASE || 'URL no configurada'
+    return new Error(`No se puede conectar al servidor.\n\nAPI URL: ${apiUrl}\n\nVerifica:\n1. El backend está corriendo\n2. La URL es correcta\n3. Tu celular está en la misma red WiFi`)
   }
   
   // Error con mensaje específico
@@ -351,6 +356,7 @@ export async function createOrder(token: string, payload: any) {
   try {
     const url = `${BASE}/orders`
     console.log('🛒 Creating order:', payload.items.length, 'items')
+    console.log('🛒 Payload:', JSON.stringify(payload, null, 2))
     
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 segundos para crear orden
@@ -364,8 +370,11 @@ export async function createOrder(token: string, payload: any) {
     clearTimeout(timeoutId)
     
     if (!res.ok) {
-      const txt = await res.text()
-      throw new Error(txt || `Error ${res.status}`)
+      const data = await res.json().catch(() => ({}))
+      const errorMsg = (data as any)?.error?.message || `Error ${res.status}`
+      console.error('❌ Order creation failed:', errorMsg)
+      console.error('❌ Response:', data)
+      throw new Error(errorMsg)
     }
     
     const data = await res.json()

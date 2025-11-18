@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Alert, ActivityIndicator, Modal } from 'react-native'
 import { useRouter } from 'expo-router'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
@@ -28,6 +28,8 @@ export default function AdminCategoriasScreen() {
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   useEffect(() => {
     cargarCategorias()
@@ -45,38 +47,32 @@ export default function AdminCategoriasScreen() {
     }
   }
 
-  async function manejarCrear() {
-    Alert.prompt(
-      'Nueva Categoría',
-      'Ingresa el nombre de la categoría',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Crear',
-          onPress: async (name) => {
-            if (!name || !name.trim()) {
-              Alert.alert('Error', 'El nombre no puede estar vacío')
-              return
-            }
+  function manejarCrear() {
+    setNewCategoryName('')
+    setShowCreateModal(true)
+  }
 
-            try {
-              const token = await getToken()
-              if (!token) {
-                router.replace('/login')
-                return
-              }
+  async function confirmarCrear() {
+    if (!newCategoryName.trim()) {
+      Alert.alert('Error', 'El nombre no puede estar vacío')
+      return
+    }
 
-              await createCategory(token, { name: name.trim() })
-              Alert.alert('Éxito', 'Categoría creada correctamente')
-              cargarCategorias()
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Error al crear categoría')
-            }
-          }
-        }
-      ],
-      'plain-text'
-    )
+    try {
+      const token = await getToken()
+      if (!token) {
+        router.replace('/login')
+        return
+      }
+
+      await createCategory(token, { name: newCategoryName.trim() })
+      Alert.alert('Éxito', 'Categoría creada correctamente')
+      setShowCreateModal(false)
+      setNewCategoryName('')
+      cargarCategorias()
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Error al crear categoría')
+    }
   }
 
   async function manejarActualizar(category: Category) {
@@ -225,6 +221,42 @@ export default function AdminCategoriasScreen() {
           </View>
         }
       />
+
+      {/* Modal para crear categoría */}
+      <Modal
+        visible={showCreateModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowCreateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Nueva Categoría</Text>
+            <TextInput
+              value={newCategoryName}
+              onChangeText={setNewCategoryName}
+              placeholder="Nombre de la categoría"
+              placeholderTextColor={FalabellaColors.textMuted}
+              style={styles.modalInput}
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              <Pressable
+                onPress={() => setShowCreateModal(false)}
+                style={[styles.modalButton, styles.modalButtonCancel]}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                onPress={confirmarCrear}
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+              >
+                <Text style={styles.modalButtonTextConfirm}>Crear</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -335,6 +367,62 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: FalabellaColors.white,
     fontSize: 15,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: FalabellaColors.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: FalabellaColors.text,
+    marginBottom: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: FalabellaColors.border,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: FalabellaColors.text,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: FalabellaColors.backgroundGray,
+  },
+  modalButtonConfirm: {
+    backgroundColor: FalabellaColors.primary,
+  },
+  modalButtonTextCancel: {
+    color: FalabellaColors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalButtonTextConfirm: {
+    color: FalabellaColors.white,
+    fontSize: 16,
     fontWeight: '600',
   },
 })

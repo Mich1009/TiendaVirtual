@@ -42,7 +42,8 @@
     ],
     "extra": {
       "API_URL": "http://localhost:4000/v1",
-      "API_URL_MOBILE": "http://192.168.56.1:4000/v1"
+      "API_URL_MOBILE": "http://10.119.146.72:4000/v1",
+      "API_URL_PRODUCTION": "https://backend/api.railway.app/v1"
     },
     "experiments": {
       "typedRoutes": true,

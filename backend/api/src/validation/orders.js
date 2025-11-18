@@ -24,7 +24,7 @@ const orderCreateSchema = Joi.object({
 });
 
 const orderStatusSchema = Joi.object({
-  status: Joi.string().valid('PENDING', 'PAID', 'CANCELLED').required()
+  status: Joi.string().valid('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED').required()
 });
 
 module.exports = { orderCreateSchema, orderStatusSchema };
