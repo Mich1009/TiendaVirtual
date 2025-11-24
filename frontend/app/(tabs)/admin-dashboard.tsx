@@ -8,7 +8,7 @@
  * - Ventas totales
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { FalabellaColors } from '@/constants/theme'
@@ -25,11 +25,7 @@ export default function AdminPanelScreen() {
     totalSales: 0
   })
 
-  useEffect(() => {
-    loadStats()
-  }, [])
-
-  async function loadStats() {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true)
       const token = await getToken()
@@ -52,7 +48,11 @@ export default function AdminPanelScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadStats()
+  }, [loadStats])
 
   if (loading) {
     return (

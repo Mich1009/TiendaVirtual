@@ -6,15 +6,14 @@
  * - Personalización de la tienda (logo, nombre, fuente)
  */
 
-import { useState, useEffect } from 'react'
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useAppConfig } from '@/context/AppConfigContext'
 import { getUser } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { useRouter } from 'expo-router'
-import Alert from '@/lib/global-alert'
 
 // Fuentes disponibles para seleccionar
 const AVAILABLE_FONTS = [
@@ -43,17 +42,13 @@ export default function AdminConfiguracionScreen() {
   // Mensajes de éxito/error
   const [successMsg, setSuccessMsg] = useState('')
 
-  useEffect(() => {
-    checkAdminAccess()
-  }, [])
-
   // Sincronizar valores temporales con el contexto cuando cambia
   useEffect(() => {
     setTempStoreName(config.storeName)
     setTempSelectedFont(config.fontFamily)
     setTempLogoUri(config.storeLogo)
     setTempDisplayMode((config as any).displayMode || 'both')
-  }, [config.storeName, config.fontFamily, config.storeLogo, (config as any).displayMode])
+  }, [config])
 
   // Detectar cambios en la personalización
   useEffect(() => {
@@ -65,7 +60,7 @@ export default function AdminConfiguracionScreen() {
     setHasChanges(changed)
   }, [tempStoreName, tempSelectedFont, tempLogoUri, tempDisplayMode, config])
 
-  async function checkAdminAccess() {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const user = await getUser()
       if (!user || user.role !== 'ADMIN') {
@@ -80,7 +75,11 @@ export default function AdminConfiguracionScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkAdminAccess()
+  }, [checkAdminAccess])
 
   async function handlePickImage() {
     try {

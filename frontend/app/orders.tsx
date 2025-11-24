@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native'
 import { getOrders } from '@/lib/api'
 import { getToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'

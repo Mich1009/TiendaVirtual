@@ -7,7 +7,7 @@
  * - Ver detalles de cada orden
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, Alert, Modal, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { FalabellaColors } from '@/constants/theme'
@@ -50,11 +50,7 @@ export default function AdminPedidosScreen() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
 
-  useEffect(() => {
-    loadOrders()
-  }, [])
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true)
       const token = await getToken()
@@ -71,7 +67,11 @@ export default function AdminPedidosScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadOrders()
+  }, [loadOrders])
 
   async function handleStatusChange(order: Order, newStatus: string) {
     try {

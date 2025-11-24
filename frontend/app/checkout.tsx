@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Pressable, FlatList, Image, StyleSheet, ScrollView, Alert } from 'react-native'
+import { View, Text, TextInput, Pressable, Image, StyleSheet, ScrollView, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createOrder } from '@/lib/api'

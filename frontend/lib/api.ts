@@ -28,17 +28,46 @@ const fallbackURL = Platform.select({
 // Verificar variable de entorno primero
 const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL
 
-// URL base final que se usará para todas las peticiones
-const BASE = ENV_API_URL || API_URL || fallbackURL
+// Resolver y normalizar la URL base que se usará para todas las peticiones
+function resolveBaseUrl(): string {
+  const original = ENV_API_URL || API_URL || fallbackURL
 
-// Log detallado de la URL que se está usando (útil para debugging)
-console.log('🌐 ========== API CONFIGURATION ==========')
-console.log('🌐 Platform:', Platform.OS)
-console.log('🌐 ENV API URL:', ENV_API_URL || 'NO CONFIGURADO')
-console.log('🌐 app.json API_URL:', API_URL || 'NO CONFIGURADO')
-console.log('🌐 Fallback URL:', fallbackURL)
-console.log('🌐 FINAL BASE URL:', BASE)
-console.log('🌐 =========================================')
+  // Si estamos en Android y en desarrollo, evitar https con certificados locales
+  // porque el emulador / dispositivo puede rechazar certificados autofirmados.
+  // Preferir `http` en esos casos y usar la IP/emulador apropiado.
+  let resolved = original
+
+  try {
+    // Reemplazar localhost/127.0.0.1 por el host especial del emulador Android
+    if (Platform.OS === 'android') {
+      if (/localhost|127\.0\.0\.1/.test(resolved)) {
+        resolved = resolved.replace(/localhost|127\.0\.0\.1/, '10.0.2.2')
+      }
+
+      // En modo desarrollo, si la URL final usa https, cambiamos a http para evitar
+      // problemas con certificados autofirmados en el backend local.
+      if (typeof __DEV__ !== 'undefined' && __DEV__ && resolved.startsWith('https://')) {
+        resolved = resolved.replace(/^https:\/\//, 'http://')
+      }
+    }
+  } catch (e) {
+    // No bloquear en caso de error al normalizar
+    console.warn('⚠️ Error normalizando API URL:', e)
+  }
+
+  console.log('🌐 ========== API CONFIGURATION ==========')
+  console.log('🌐 Platform:', Platform.OS)
+  console.log('🌐 ENV API URL:', ENV_API_URL || 'NO CONFIGURADO')
+  console.log('🌐 app.json API_URL:', API_URL || 'NO CONFIGURADO')
+  console.log('🌐 Fallback URL:', fallbackURL)
+  console.log('🌐 ORIGINAL BASE URL:', original)
+  console.log('🌐 FINAL BASE URL:', resolved)
+  console.log('🌐 =========================================')
+
+  return resolved
+}
+
+const BASE = resolveBaseUrl()
 
 // ============================================================================
 // FUNCIONES AUXILIARES
@@ -537,6 +566,10 @@ export async function updateProduct(token: string, productId: number, product: a
   try {
     const url = `${BASE}/products/${productId}`
     console.log('📦 Updating product:', productId)
+    // Prevent sending empty update payload which causes backend "The query is empty" errors
+    if (!product || (Object.keys(product).length === 0)) {
+      throw new Error('No hay campos para actualizar')
+    }
     
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000)

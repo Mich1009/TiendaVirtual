@@ -8,7 +8,7 @@
  * - Eliminar productos
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
@@ -56,11 +56,7 @@ export default function AdminProductosScreen() {
   })
   const [uploadingImage, setUploadingImage] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       const token = await getToken()
@@ -86,7 +82,11 @@ export default function AdminProductosScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   function openCreateModal() {
     setEditingProduct(null)

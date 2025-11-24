@@ -9,7 +9,7 @@
  * - Asignar roles (CUSTOMER/ADMIN)
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { FalabellaColors } from '@/constants/theme'
@@ -41,11 +41,7 @@ export default function AdminUsuariosScreen() {
     role: 'CUSTOMER' as 'CUSTOMER' | 'ADMIN'
   })
 
-  useEffect(() => {
-    cargarUsuarios()
-  }, [])
-
-  async function cargarUsuarios() {
+  const cargarUsuarios = useCallback(async () => {
     try {
       setLoading(true)
       const token = await getToken()
@@ -62,7 +58,11 @@ export default function AdminUsuariosScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router, searchQuery])
+
+  useEffect(() => {
+    cargarUsuarios()
+  }, [cargarUsuarios])
 
   function abrirModalCrear() {
     setEditingUser(null)
@@ -248,11 +248,11 @@ export default function AdminUsuariosScreen() {
             </View>
             <View style={styles.userActions}>
               <Pressable onPress={() => abrirModalEditar(item)} style={styles.editButton}>
-                <Text style={styles.actionIcon}>✏️</Text>
+                <IconSymbol name="pencil" size={16} color={FalabellaColors.white} />
                 <Text style={styles.actionButtonText}>Editar</Text>
               </Pressable>
               <Pressable onPress={() => manejarEliminar(item)} style={styles.deleteButton}>
-                <Text style={styles.actionIcon}>🗑️</Text>
+                <IconSymbol name="trash" size={16} color={FalabellaColors.white} />
                 <Text style={styles.actionButtonText}>Eliminar</Text>
               </Pressable>
             </View>
