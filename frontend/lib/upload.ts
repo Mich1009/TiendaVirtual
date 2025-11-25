@@ -1,6 +1,5 @@
 import { API_URL } from '@/constants/config'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { getToken as getSavedToken } from './auth'
 import * as FileSystem from 'expo-file-system'
 
 /**
@@ -9,7 +8,7 @@ import * as FileSystem from 'expo-file-system'
 async function imageToBase64(uri: string): Promise<string> {
   try {
     const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
+      encoding: 'base64',
     })
     
     // Detectar el tipo de imagen por la extensión
@@ -35,14 +34,9 @@ export async function uploadImage(imageUri: string): Promise<string> {
     // Convertir a base64
     const base64Image = await imageToBase64(imageUri)
     
-    // Obtener token (primary key 'token' via getToken()).
-    // Mantenemos compatibilidad con la clave antigua 'auth.token'.
-    let token = await getSavedToken()
+    // Obtener token
+    const token = await AsyncStorage.getItem('auth.token')
     if (!token) {
-      token = await AsyncStorage.getItem('auth.token')
-    }
-    if (!token) {
-      console.warn('uploadImage: no se encontró token en AsyncStorage')
       throw new Error('No autenticado')
     }
     

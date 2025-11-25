@@ -18,9 +18,7 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 
 // Tipo que define los nombres de iconos disponibles
-// Permitimos pasar tanto claves SF Symbols (las del MAPPING) como nombres
-// directos de Material Icons (por compatibilidad con usos existentes).
-type IconSymbolName = keyof typeof MAPPING | string;
+type IconSymbolName = keyof typeof MAPPING;
 
 /**
  * Mapeo de iconos SF Symbols a Material Icons
@@ -32,86 +30,19 @@ type IconSymbolName = keyof typeof MAPPING | string;
  * Formato: 'nombre-sf-symbol': 'nombre-material-icon'
  */
 const MAPPING = {
-  // Navegación y layout
-  'house.fill': 'home',
-  'chevron.right': 'chevron-right',
-  'chevron.left': 'chevron-left',
-
-  // Acciones comunes
-  'magnifyingglass': 'search',
-  'plus': 'add',
-  'plus.circle.fill': 'add-circle',
-  'pencil': 'edit',
-  'trash': 'delete',
-  'xmark': 'close',
-  'xmark.circle.fill': 'cancel',
-  'checkmark': 'check',
-  'checkmark.circle.fill': 'check-circle',
-
-  // Carrito / e-commerce
-  'cart.fill': 'shopping-cart',
-  'cart': 'shopping-cart',
-  'bag': 'shopping_bag',
-  'cube.box.fill': 'inventory',
-  'cube.box': 'inventory',
-  'shippingbox.fill': 'local_shipping',
-
-  // Usuario / perfiles
-  'person.fill': 'person',
-  'person.2': 'group',
-  'person.2.fill': 'group',
-  // 'admin_panel_settings' caused warnings on some platforms; use a safe fallback
-  'person.badge.key.fill': 'admin-panel-settings',
-
-  // Formularios / UI
-  'envelope.fill': 'email',
-  'lock.fill': 'lock',
-  'creditcard.fill': 'credit_card',
-  'phone.fill': 'phone',
-  'location.fill': 'location-on',
-  'calendar': 'event',
-
-  // Multimedia / imágenes
-  'photo': 'photo',
-  // map to a widely-supported Material icon name
-  'photo.badge.plus': 'photo-camera',
-  'folder': 'folder',
-  'folder.fill': 'folder',
-  'folder.badge.plus': 'create',
-
-  // Indicadores / status
-  'exclamationmark.triangle.fill': 'warning',
-  'exclamationmark.triangle': 'warning',
-  'exclamationmark.circle.fill': 'error',
-  'dollarsign.circle.fill': 'monetization-on',
-
-  // Herramientas / settings
-  'paintbrush.fill': 'brush',
-  'gearshape.fill': 'settings',
-  'storefront': 'storefront',
-  // Ojos / visibilidad
-  'eye.fill': 'visibility',
-  'eye.slash.fill': 'visibility-off',
-  // Persona circular (perfil)
-  'person.circle': 'account-circle',
-  // Rayo/energía
-  'bolt': 'flash_on',
-
-  // Misc
-  'rectangle.portrait.and.arrow.right': 'logout',
-  'list.bullet.clipboard.fill': 'assignment',
-  'list.bullet.clipboard': 'assignment',
-  'chevron.left.forwardslash.chevron.right': 'code',
-  // Backwards-compatible aliases / catch-alls for names that appeared in warnings
-  'admin_panel_settings': 'settings',
-  'add_a_photo': 'photo-camera',
-  'attach_money': 'monetization-on',
-  'text_fields': 'title',
-  'chart.bar.fill': 'assessment',
-  // aliases for chart callers that used other names
-  'insert_chart': 'assessment',
-  'bar_chart': 'assessment',
-  'show_chart': 'assessment',
+  // Iconos de navegación
+  'house.fill': 'home',                                          // Inicio/Home
+  'chevron.right': 'chevron-right',                             // Flecha derecha
+  
+  // Iconos de acciones
+  'paperplane.fill': 'send',                                    // Enviar
+  'cart.fill': 'shopping-cart',                                 // Carrito de compras
+  
+  // Iconos de usuario
+  'person.fill': 'person',                                      // Persona/Usuario
+  
+  // Iconos técnicos
+  'chevron.left.forwardslash.chevron.right': 'code',           // Código/Desarrollo
 } as IconMapping;
 
 /**
@@ -136,18 +67,13 @@ export function IconSymbol({
   color,
   style,
 }: {
-  // Acepta una clave SF (que existe en MAPPING) o el nombre directo de Material Icon.
-  name: IconSymbolName;
-  size?: number;
-  color: string | OpaqueColorValue;
-  style?: StyleProp<TextStyle>;
-  weight?: SymbolWeight;
+  name: IconSymbolName;                    // Nombre del icono del mapeo
+  size?: number;                           // Tamaño opcional (default: 24px)
+  color: string | OpaqueColorValue;        // Color requerido
+  style?: StyleProp<TextStyle>;            // Estilos opcionales
+  weight?: SymbolWeight;                   // Peso del símbolo (iOS únicamente)
 }) {
-  // Si el `name` coincide con una clave de MAPPING, usamos el valor mapeado.
-  // Si no, asumimos que el consumidor pasó un nombre válido de Material Icons
-  // y lo usamos tal cual. En cualquier caso aplicamos un fallback final.
-  const mapped = (MAPPING as Record<string, string>)[name as string]
-  const resolved = mapped || (name as string)
-  const iconName = resolved || 'help-outline'
-  return <MaterialIcons color={color} size={size} name={iconName as any} style={style} />;
+  // En esta implementación siempre usa Material Icons
+  // En iOS se podría usar expo-symbols condicionalmente
+  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
 }

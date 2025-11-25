@@ -60,7 +60,7 @@ export default function CarritoScreen() {
                   </View>
                 </View>
                 <Pressable onPress={() => removeItem(item.id)} style={styles.removeButton}>
-                  <IconSymbol name="trash" size={20} color={FalabellaColors.textMuted} />
+                  <Text style={styles.removeIcon}>🗑️</Text>
                 </Pressable>
               </View>
             )}

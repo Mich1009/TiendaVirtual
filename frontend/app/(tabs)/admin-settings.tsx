@@ -6,15 +6,14 @@
  * - Personalización de la tienda (logo, nombre, fuente)
  */
 
-import { useState, useEffect } from 'react'
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { useAppConfig } from '@/context/AppConfigContext'
 import { getUser } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { useRouter } from 'expo-router'
-import Alert from '@/lib/global-alert'
 
 // Fuentes disponibles para seleccionar
 const AVAILABLE_FONTS = [
@@ -43,17 +42,13 @@ export default function AdminConfiguracionScreen() {
   // Mensajes de éxito/error
   const [successMsg, setSuccessMsg] = useState('')
 
-  useEffect(() => {
-    checkAdminAccess()
-  }, [])
-
   // Sincronizar valores temporales con el contexto cuando cambia
   useEffect(() => {
     setTempStoreName(config.storeName)
     setTempSelectedFont(config.fontFamily)
     setTempLogoUri(config.storeLogo)
     setTempDisplayMode((config as any).displayMode || 'both')
-  }, [config.storeName, config.fontFamily, config.storeLogo, (config as any).displayMode])
+  }, [config])
 
   // Detectar cambios en la personalización
   useEffect(() => {
@@ -65,7 +60,7 @@ export default function AdminConfiguracionScreen() {
     setHasChanges(changed)
   }, [tempStoreName, tempSelectedFont, tempLogoUri, tempDisplayMode, config])
 
-  async function checkAdminAccess() {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const user = await getUser()
       if (!user || user.role !== 'ADMIN') {
@@ -80,7 +75,11 @@ export default function AdminConfiguracionScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkAdminAccess()
+  }, [checkAdminAccess])
 
   async function handlePickImage() {
     try {
@@ -260,13 +259,10 @@ export default function AdminConfiguracionScreen() {
             Personaliza la apariencia de tu tienda
           </Text>
           
-            {/* Vista previa del header */}
-            <View style={styles.previewContainer}>
-              <View style={styles.previewHeaderRow}>
-                <IconSymbol name="phone.fill" size={18} color={FalabellaColors.text} />
-                <Text style={styles.previewLabel}> Vista previa del inicio</Text>
-              </View>
-              <Text style={styles.previewSubLabel}>Así se verá en la pantalla principal</Text>
+          {/* Vista previa del header */}
+          <View style={styles.previewContainer}>
+            <Text style={styles.previewLabel}>📱 Vista previa del inicio</Text>
+            <Text style={styles.previewSubLabel}>Así se verá en la pantalla principal</Text>
             
             {/* Simulación del header real */}
             <View style={styles.headerPreview}>
@@ -277,7 +273,7 @@ export default function AdminConfiguracionScreen() {
                     <Image source={{ uri: tempLogoUri }} style={styles.logoPreviewLarge} />
                   ) : (
                     <View style={styles.logoPlaceholderLarge}>
-                      <IconSymbol name="storefront" size={24} color={FalabellaColors.text} />
+                      <Text style={styles.logoPlaceholderText}>🏪</Text>
                       {tempDisplayMode === 'logo' && (
                         <Text style={styles.logoPlaceholderSubtext}>Sin logo</Text>
                       )}
@@ -312,10 +308,10 @@ export default function AdminConfiguracionScreen() {
               {/* Elementos decorativos para simular el header real */}
               <View style={styles.headerPreviewIcons}>
                 <View style={styles.iconPlaceholder}>
-                  <IconSymbol name="magnifyingglass" size={18} color={FalabellaColors.textMuted} />
+                  <Text>🔍</Text>
                 </View>
                 <View style={styles.iconPlaceholder}>
-                  <IconSymbol name="cart" size={18} color={FalabellaColors.textMuted} />
+                  <Text>🛒</Text>
                 </View>
               </View>
             </View>
@@ -323,10 +319,7 @@ export default function AdminConfiguracionScreen() {
             {/* Indicador de cambios */}
             {hasChanges && (
               <View style={styles.previewBadge}>
-                <View style={styles.previewBadgeContent}>
-                  <IconSymbol name="bolt" size={14} color="#E65100" />
-                  <Text style={styles.previewBadgeText}> Cambios pendientes de guardar</Text>
-                </View>
+                <Text style={styles.previewBadgeText}>⚡ Cambios pendientes de guardar</Text>
               </View>
             )}
           </View>
@@ -341,8 +334,8 @@ export default function AdminConfiguracionScreen() {
                 tempDisplayMode === 'logo' && styles.displayModeOptionSelected
               ]}
             >
-                <View style={styles.displayModeContent}>
-                <IconSymbol name="photo" size={20} color={tempDisplayMode === 'logo' ? FalabellaColors.primary : FalabellaColors.text} />
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>🖼️</Text>
                 <Text style={[
                   styles.displayModeLabel,
                   tempDisplayMode === 'logo' && styles.displayModeLabelSelected
@@ -365,8 +358,8 @@ export default function AdminConfiguracionScreen() {
                 tempDisplayMode === 'text' && styles.displayModeOptionSelected
               ]}
             >
-                <View style={styles.displayModeContent}>
-                <IconSymbol name="text_fields" size={20} color={tempDisplayMode === 'text' ? FalabellaColors.primary : FalabellaColors.text} />
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>📝</Text>
                 <Text style={[
                   styles.displayModeLabel,
                   tempDisplayMode === 'text' && styles.displayModeLabelSelected
@@ -389,11 +382,8 @@ export default function AdminConfiguracionScreen() {
                 tempDisplayMode === 'both' && styles.displayModeOptionSelected
               ]}
             >
-                <View style={styles.displayModeContent}>
-                <View style={styles.displayModeBothIcons}>
-                  <IconSymbol name="photo" size={16} color={tempDisplayMode === 'both' ? FalabellaColors.primary : FalabellaColors.text} />
-                  <IconSymbol name="text_fields" size={16} color={tempDisplayMode === 'both' ? FalabellaColors.primary : FalabellaColors.text} />
-                </View>
+              <View style={styles.displayModeContent}>
+                <Text style={styles.displayModeEmoji}>🖼️📝</Text>
                 <Text style={[
                   styles.displayModeLabel,
                   tempDisplayMode === 'both' && styles.displayModeLabelSelected
@@ -423,7 +413,7 @@ export default function AdminConfiguracionScreen() {
                 </Pressable>
                 {tempLogoUri && (
                   <Pressable onPress={handleRemoveLogo} style={styles.logoButtonDanger}>
-                    <IconSymbol name="trash" size={18} color={FalabellaColors.white} />
+                    <Text style={styles.logoIcon}>🗑️</Text>
                   </Pressable>
                 )}
               </View>
@@ -611,12 +601,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: FalabellaColors.border,
   },
-  previewHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
   previewLabel: {
     fontSize: 14,
     fontWeight: '700',
@@ -698,11 +682,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#E65100',
-  },
-  previewBadgeContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   previewContent: {
     flexDirection: 'row',
@@ -851,12 +830,6 @@ const styles = StyleSheet.create({
   },
   displayModeContent: {
     flex: 1,
-  },
-  displayModeBothIcons: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    marginBottom: 4,
   },
   displayModeEmoji: {
     fontSize: 20,

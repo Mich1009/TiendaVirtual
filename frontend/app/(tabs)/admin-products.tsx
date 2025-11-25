@@ -8,7 +8,7 @@
  * - Eliminar productos
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
@@ -56,11 +56,7 @@ export default function AdminProductosScreen() {
   })
   const [uploadingImage, setUploadingImage] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       const token = await getToken()
@@ -86,7 +82,11 @@ export default function AdminProductosScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   function openCreateModal() {
     setEditingProduct(null)
@@ -127,7 +127,7 @@ export default function AdminProductosScreen() {
 
       // Seleccionar imagen
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -298,11 +298,11 @@ export default function AdminProductosScreen() {
             </View>
             <View style={styles.productActions}>
               <Pressable onPress={() => openEditModal(item)} style={styles.editActionButton}>
-                <IconSymbol name="pencil" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>✏️</Text>
                 <Text style={styles.actionButtonText}>Editar</Text>
               </Pressable>
               <Pressable onPress={() => handleDelete(item)} style={styles.deleteActionButton}>
-                <IconSymbol name="trash" size={16} color={FalabellaColors.white} />
+                <Text style={styles.actionIcon}>🗑️</Text>
                 <Text style={styles.actionButtonText}>Eliminar</Text>
               </Pressable>
             </View>
