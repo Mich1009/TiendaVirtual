@@ -5,69 +5,20 @@
  * incluyendo autenticación, productos, categorías y pedidos.
  */
 
-import Constants from 'expo-constants'
-import { Platform } from 'react-native'
+
 
 // ============================================================================
 // CONFIGURACIÓN DE LA URL BASE DEL API
 // ============================================================================
 
-/**
- * Obtiene la URL base del API desde app.json (extra.API_URL)
- * Esta es la configuración principal que debes actualizar con tu IP local
- */
-const API_URL = ((Constants?.expoConfig?.extra as any)?.API_URL as string) || ''
+// Importar la configuración unificada
+import { API_URL } from '@/constants/config'
 
-// Fallback solo si no hay configuración en app.json
-const fallbackURL = Platform.select({ 
-  android: 'http://10.0.2.2:4000/v1',  // IP especial para emulador Android
-  ios: 'http://localhost:4000/v1',      // localhost para iOS
-  default: 'http://localhost:4000/v1'   // fallback
-}) as string
+// URL base final que se usará para todas las peticiones
+const BASE = API_URL
 
-// Verificar variable de entorno primero
-const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL
-
-// Resolver y normalizar la URL base que se usará para todas las peticiones
-function resolveBaseUrl(): string {
-  const original = ENV_API_URL || API_URL || fallbackURL
-
-  // Si estamos en Android y en desarrollo, evitar https con certificados locales
-  // porque el emulador / dispositivo puede rechazar certificados autofirmados.
-  // Preferir `http` en esos casos y usar la IP/emulador apropiado.
-  let resolved = original
-
-  try {
-    // Reemplazar localhost/127.0.0.1 por el host especial del emulador Android
-    if (Platform.OS === 'android') {
-      if (/localhost|127\.0\.0\.1/.test(resolved)) {
-        resolved = resolved.replace(/localhost|127\.0\.0\.1/, '10.0.2.2')
-      }
-
-      // En modo desarrollo, si la URL final usa https, cambiamos a http para evitar
-      // problemas con certificados autofirmados en el backend local.
-      if (typeof __DEV__ !== 'undefined' && __DEV__ && resolved.startsWith('https://')) {
-        resolved = resolved.replace(/^https:\/\//, 'http://')
-      }
-    }
-  } catch (e) {
-    // No bloquear en caso de error al normalizar
-    console.warn('⚠️ Error normalizando API URL:', e)
-  }
-
-  console.log('🌐 ========== API CONFIGURATION ==========')
-  console.log('🌐 Platform:', Platform.OS)
-  console.log('🌐 ENV API URL:', ENV_API_URL || 'NO CONFIGURADO')
-  console.log('🌐 app.json API_URL:', API_URL || 'NO CONFIGURADO')
-  console.log('🌐 Fallback URL:', fallbackURL)
-  console.log('🌐 ORIGINAL BASE URL:', original)
-  console.log('🌐 FINAL BASE URL:', resolved)
-  console.log('🌐 =========================================')
-
-  return resolved
-}
-
-const BASE = resolveBaseUrl()
+// Log simplificado
+console.log('🌐 API Client usando URL:', BASE)
 
 // ============================================================================
 // FUNCIONES AUXILIARES
