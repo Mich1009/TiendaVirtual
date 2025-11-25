@@ -35,14 +35,6 @@ function startProcess(name, command, args, cwd, color) {
   return proc;
 }
 
-console.log(`${BLUE}╔════════════════════════════════════════════════════════════╗${RESET}`);
-console.log(`${BLUE}║  🌍 MODO: TÚNEL DE EXPO                                   ║${RESET}`);
-console.log(`${BLUE}╠════════════════════════════════════════════════════════════╣${RESET}`);
-console.log(`${BLUE}║  ✅ Funciona desde CUALQUIER dispositivo                  ║${RESET}`);
-console.log(`${BLUE}║  ✅ No necesitas estar en la misma red WiFi               ║${RESET}`);
-console.log(`${BLUE}║  ✅ Túnel automático de Expo                              ║${RESET}`);
-console.log(`${BLUE}╚════════════════════════════════════════════════════════════╝${RESET}\n`);
-
 // Paso 1: Iniciar backend
 console.log(`${BLUE}[1/2] Iniciando Backend...${RESET}`);
 startProcess('Backend', 'npm', ['run', 'dev'], 'backend/api', BLUE);
@@ -55,15 +47,6 @@ setTimeout(() => {
   startProcess('Frontend', 'npx', ['expo', 'start', '--tunnel'], 'frontend', GREEN);
   
   setTimeout(() => {
-    console.log(`\n${GREEN}╔════════════════════════════════════════════════════════════╗${RESET}`);
-    console.log(`${GREEN}║  ✅ TODO LISTO                                            ║${RESET}`);
-    console.log(`${GREEN}╠════════════════════════════════════════════════════════════╣${RESET}`);
-    console.log(`${GREEN}║  📱 Escanea el QR desde CUALQUIER celular                ║${RESET}`);
-    console.log(`${GREEN}║  🌐 Web: http://localhost:8081                           ║${RESET}`);
-    console.log(`${GREEN}║  🌍 El túnel funciona desde cualquier red                ║${RESET}`);
-    console.log(`${GREEN}║                                                            ║${RESET}`);
-    console.log(`${GREEN}║  💡 Presiona Ctrl+C para detener todo                    ║${RESET}`);
-    console.log(`${GREEN}╚════════════════════════════════════════════════════════════╝${RESET}\n`);
   }, 5000);
 }, 5000);
 
