@@ -2,7 +2,7 @@
 
 /**
  * Script para iniciar backend y frontend sin túnel
- * Ejecuta migraciones y seeder automáticamente
+ * Ejecuta migraciones automáticamente (seeder solo la primera vez manualmente)
  * Usa conexión directa con IP local para mejor rendimiento
  */
 
@@ -90,22 +90,19 @@ process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 process.on('exit', cleanup);
 
-// Ejecutar setup de BD y luego iniciar servidores
+// Ejecutar migraciones y luego iniciar servidores
 async function main() {
   try {
     // Paso 1: Ejecutar migraciones
     await executeCommand('Migraciones', 'npm', ['run', 'migrate'], 'backend/api');
     
-    // Paso 2: Ejecutar seeder
-    await executeCommand('Seeder', 'npm', ['run', 'seed'], 'backend/api');
-    
-    // Paso 3: Iniciar backend
-    console.log(`${BLUE}[3/4] Iniciando Backend...${RESET}`);
+    // Paso 2: Iniciar backend
+    console.log(`${BLUE}[2/3] Iniciando Backend...${RESET}`);
     startProcess('Backend', 'npm', ['run', 'dev'], 'backend/api', BLUE);
 
-    // Paso 4: Esperar 3 segundos e iniciar frontend
+    // Paso 3: Esperar 3 segundos e iniciar frontend
     setTimeout(() => {
-      console.log(`\n${GREEN}[4/4] Iniciando Frontend (LAN)...${RESET}\n`);
+      console.log(`\n${GREEN}[3/3] Iniciando Frontend (LAN)...${RESET}\n`);
       startProcess('Frontend', 'npx', ['expo', 'start', '--lan'], 'frontend', GREEN);
     }, 3000);
   } catch (error) {
