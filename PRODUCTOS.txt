@@ -1,0 +1,44 @@
+LISTA DE PRODUCTOS - TIENDA VIRTUAL
+====================================
+
+ELECTRÓNICA (6 productos)
+1. Auriculares Bluetooth
+2. Cable USB-C 2m
+3. Funda Teléfono
+4. Cargador Inalámbrico
+5. Protector Pantalla
+6. Power Bank 20000mAh
+
+ROPA (6 productos)
+7. Camiseta Básica
+8. Pantalón Jeans
+9. Sudadera Hoodie
+10. Calcetines Pack 6
+11. Gorra Deportiva
+12. Chaqueta Ligera
+
+HOGAR (6 productos)
+13. Lámpara LED
+14. Almohada Memoria
+15. Mantas Fleece
+16. Cortinas Oscuras
+17. Espejo Pared 50x70
+18. Maceta Cerámica
+
+DEPORTES (6 productos)
+19. Botella Agua 750ml
+20. Mochila Deportiva
+21. Zapatillas Running
+22. Banda Elástica Fitness
+23. Tapete Yoga
+24. Rodillo Masaje
+
+LIBROS (6 productos)
+25. Novela Ficción
+26. Guía Programación
+27. Autoayuda Éxito
+28. Recetas Cocina
+29. Historia Universal
+30. Cómics Aventura
+
+TOTAL: 30 PRODUCTOS
