@@ -19,6 +19,7 @@
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
+    "db:setup": "node scripts/setup-db.js",
     "db:create": "node scripts/create-db.js"
   },
   "dependencies": {
