@@ -3,10 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node start-dev.js",
     "backend": "cd backend/api && npm run dev",
-    "frontend": "cd frontend && npx expo start --tunnel",
-    "migrate": "cd backend/api && npm run migrate",
-    "seed": "cd backend/api && npm run seed"
+    "frontend": "cd frontend && npx expo start --lan",
+    "db:setup": "cd backend/api && npm run db:setup"
   }
 }

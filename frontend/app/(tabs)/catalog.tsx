@@ -29,6 +29,8 @@ export default function CatalogoScreen() {
   }, [config])
 
   useEffect(() => {
+    let isMounted = true
+    
     ;(async () => {
       try {
         setLoading(true)
@@ -36,16 +38,28 @@ export default function CatalogoScreen() {
           getProducts({ search: query || undefined, category: category || undefined, sort: 'created_desc', page: 1, limit: 30 }),
           getCategories()
         ])
+        
+        // Solo actualizar estado si el componente sigue montado
+        if (!isMounted) return
+        
         const list = Array.isArray((prods as any).items) ? (prods as any).items : Array.isArray(prods) ? prods as any : []
         setItems(list)
         setCategories(Array.isArray(cats) ? cats as any : [])
         setError('')
       } catch (e: any) {
+        // Solo mostrar error si el componente sigue montado y no es AbortError
+        if (!isMounted) return
+        if (e.name === 'AbortError') return
         setError(e.message || 'Error al cargar productos')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     })()
+    
+    // Cleanup: marcar como desmontado
+    return () => {
+      isMounted = false
+    }
   }, [query, category])
 
   return (

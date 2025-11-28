@@ -140,43 +140,30 @@ Reemplaza `tu_ip_local` con la IP de tu máquina (ej: `192.168.1.100`)
 
 ## ▶️ Ejecución
 
-### Opción 1: Ejecutar Todo Automáticamente
+### Opción Recomendada: Ejecutar en Dos Terminales
 
-```bash
-npm start
-```
-
-Este comando:
-1. Crea la base de datos si no existe
-2. Ejecuta migraciones
-3. Inicia el backend en puerto 4000
-4. Inicia el frontend en puerto 8081
-
-**Nota**: El seeder se ejecuta solo la primera vez manualmente para no borrar cambios posteriores en la BD.
-
-### Opción 2: Ejecutar Manualmente
+Abre **dos terminales** diferentes:
 
 **Terminal 1 - Backend:**
 ```bash
-cd backend/api
-npm run dev
+npm run backend
 ```
+Espera a que veas: `🚀 API en http://0.0.0.0:4000`
 
 **Terminal 2 - Frontend:**
 ```bash
-cd frontend
-npm start
+npm run frontend
 ```
+Escanea el QR con tu celular o emulador
 
-Luego presiona `w` para abrir en web, `a` para Android, o `i` para iOS.
+**Para detener**: Presiona `Ctrl+C` en cada terminal
 
-### Opción 3: Cargar Datos de Prueba (Primera Vez)
+### Cargar Datos de Prueba (Primera Vez)
 
-Para cargar los 30 productos de prueba, ejecuta en una terminal:
+Para cargar los 30 productos de prueba:
 
 ```bash
-cd backend/api
-npm run seed
+npm run db:setup
 ```
 
 **⚠️ Importante**: Solo ejecuta esto la primera vez. Después, los cambios que hagas en la BD se preservarán.
@@ -229,7 +216,6 @@ TiendaVirtual/
 │   │   └── ...
 │   ├── constants/                    # Constantes
 │   └── package.json
-├── start-dev.js                      # Script para iniciar todo
 └── README.md
 ```
 
@@ -300,37 +286,35 @@ TiendaVirtual/
 
 ## 🔧 Comandos Útiles
 
-### Backend
+### Desde la Raíz del Proyecto
 
 ```bash
-cd backend/api
+# Iniciar backend
+npm run backend
 
-# Iniciar en modo desarrollo
-npm run dev
+# Iniciar frontend
+npm run frontend
 
-# Ejecutar migraciones
-npm run migrate
-
-# Cargar datos de prueba
-npm run seed
-
-# Configurar BD completa (migraciones + seeder)
+# Configurar BD (migraciones + seeder)
 npm run db:setup
-
-# Crear base de datos
-npm run db:create
-
-# Revertir última migración
-npm run rollback
 ```
 
-### Frontend
+### Backend (en backend/api/)
 
 ```bash
-cd frontend
+npm run dev          # Iniciar en desarrollo
+npm run migrate      # Ejecutar migraciones
+npm run seed         # Cargar datos de prueba
+npm run db:setup     # Migraciones + seeder
+npm run db:create    # Crear base de datos
+npm run rollback     # Revertir última migración
+```
 
-# Iniciar con limpieza de caché
-npm start -c
+### Frontend (en frontend/)
+
+```bash
+npx expo start --lan # Iniciar con LAN
+npx expo start --web # Iniciar en web
 
 # Limpiar caché de Expo
 npm start -- --clear
@@ -340,14 +324,18 @@ npm start -- --clear
 
 ## 🐛 Troubleshooting
 
-### Error: "Network request failed"
+### Error: "Network request failed" o "No se pudo cargar desde backend"
 
 **Causa**: La URL del backend es incorrecta o el backend no está corriendo
 
 **Solución**:
-1. Verifica que el backend está corriendo: `npm run dev` en `backend/api`
-2. Verifica la IP en `frontend/.env`
-3. Prueba conectar: `curl http://tu_ip:4000/v1/products`
+1. Verifica que el backend está corriendo: `npm run backend`
+2. Obtén tu IP local: `ipconfig` (busca "Dirección IPv4" en WiFi)
+3. Actualiza `frontend/.env`:
+   ```
+   EXPO_PUBLIC_API_URL=http://TU_IP:4000/v1
+   ```
+4. Recarga la app de Expo (presiona `r` en la terminal)
 
 ### Error: "Port 4000 is already in use"
 
@@ -380,7 +368,13 @@ kill -9 <PID>
 
 **Solución**:
 - Presiona `r` en la terminal del frontend para recargar
-- O presiona `Ctrl+C` y ejecuta `npm start` nuevamente
+- O presiona `Ctrl+C` y ejecuta `npm run frontend` nuevamente
+
+### No puedo presionar Ctrl+C para cerrar
+
+**Solución**:
+- Presiona `Ctrl+C` dos veces seguidas
+- O cierra la terminal directamente
 
 ## 📊 Estadísticas del Proyecto
 

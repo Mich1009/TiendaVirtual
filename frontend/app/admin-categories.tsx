@@ -36,14 +36,25 @@ export default function AdminCategoriasScreen() {
   }, [])
 
   async function cargarCategorias() {
+    let isMounted = true
+    
     try {
       setLoading(true)
       const data = await getCategories()
+      
+      if (!isMounted) return
+      
       setCategories(Array.isArray(data) ? data : [])
     } catch (error: any) {
+      if (!isMounted) return
+      if (error.name === 'AbortError') return
       Alert.alert('Error', error.message || 'Error al cargar categorías')
     } finally {
-      setLoading(false)
+      if (isMounted) setLoading(false)
+    }
+    
+    return () => {
+      isMounted = false
     }
   }
 

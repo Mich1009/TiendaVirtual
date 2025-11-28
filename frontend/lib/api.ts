@@ -42,6 +42,11 @@ function headers(token?: string): Record<string, string> {
  * @returns Error formateado con mensaje descriptivo
  */
 function handleError(error: any, defaultMessage: string): Error {
+  // Ignorar AbortError silenciosamente (es normal cuando se cancela una petición)
+  if (error.name === 'AbortError') {
+    return error
+  }
+  
   console.error('❌ API Error:', error)
   console.error('❌ Error type:', typeof error)
   console.error('❌ Error keys:', Object.keys(error))

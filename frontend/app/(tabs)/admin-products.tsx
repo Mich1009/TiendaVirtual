@@ -57,6 +57,8 @@ export default function AdminProductosScreen() {
   const [uploadingImage, setUploadingImage] = useState(false)
 
   const loadData = useCallback(async () => {
+    let isMounted = true
+    
     try {
       setLoading(true)
       const token = await getToken()
@@ -71,6 +73,8 @@ export default function AdminProductosScreen() {
         getCategories()
       ])
 
+      if (!isMounted) return
+
       const prodsList = Array.isArray((prodsData as any).items) 
         ? (prodsData as any).items 
         : Array.isArray(prodsData) ? prodsData : []
@@ -78,9 +82,15 @@ export default function AdminProductosScreen() {
       setProducts(prodsList)
       setCategories(Array.isArray(catsData) ? catsData : [])
     } catch (error: any) {
+      if (!isMounted) return
+      if (error.name === 'AbortError') return
       Alert.alert('Error', error.message || 'Error al cargar datos')
     } finally {
-      setLoading(false)
+      if (isMounted) setLoading(false)
+    }
+    
+    return () => {
+      isMounted = false
     }
   }, [router])
 
