@@ -24,6 +24,7 @@ import { changePassword } from '@/lib/api'
 import { getToken, getUser, clearToken } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
+import { useTheme } from '@/context/ThemeContext'
 import Alert from '@/lib/global-alert'
 
 export default function PerfilScreen() {
@@ -238,9 +239,12 @@ export default function PerfilScreen() {
             <Text style={styles.title}>Mi Perfil</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
           </View>
-          <Pressable onPress={handleLogout} style={styles.logoutButton}>
-            <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color={FalabellaColors.error} />
-          </Pressable>
+          <View style={styles.headerButtons}>
+            <ThemeToggleButton />
+            <Pressable onPress={handleLogout} style={styles.logoutButton}>
+              <IconSymbol name="rectangle.portrait.and.arrow.right" size={24} color={FalabellaColors.error} />
+            </Pressable>
+          </View>
         </View>
       </View>
 
@@ -592,6 +596,14 @@ const styles = StyleSheet.create({
     color: FalabellaColors.textMuted,
     marginTop: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeButton: {
+    padding: 8,
+  },
   logoutButton: {
     padding: 8,
   },
@@ -860,3 +872,22 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 })
+
+/**
+ * Componente: ThemeToggleButton
+ * 
+ * Botón para cambiar entre tema claro y oscuro
+ */
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <Pressable onPress={toggleTheme} style={styles.themeButton}>
+      <IconSymbol
+        name={theme === 'light' ? 'moon.fill' : 'sun.max.fill'}
+        size={24}
+        color={FalabellaColors.primary}
+      />
+    </Pressable>
+  )
+}

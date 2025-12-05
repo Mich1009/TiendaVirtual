@@ -13,6 +13,7 @@ import { useAppConfig } from '@/context/AppConfigContext'
 import { getUser } from '@/lib/auth'
 import { FalabellaColors } from '@/constants/theme'
 import { IconSymbol } from '@/components/ui/icon-symbol'
+import { useTheme } from '@/context/ThemeContext'
 import { useRouter } from 'expo-router'
 
 // Fuentes disponibles para seleccionar
@@ -236,8 +237,13 @@ export default function AdminConfiguracionScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Configuración</Text>
-        <Text style={styles.subtitle}>Panel de administración</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>Configuración</Text>
+            <Text style={styles.subtitle}>Panel de administración</Text>
+          </View>
+          <ThemeToggleButtonAdmin />
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -502,6 +508,14 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: FalabellaColors.border,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  themeButtonAdmin: {
+    padding: 8,
   },
   title: {
     fontSize: 24,
@@ -860,3 +874,23 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 })
+
+
+/**
+ * Componente: ThemeToggleButtonAdmin
+ * 
+ * Botón para cambiar entre tema claro y oscuro en admin
+ */
+function ThemeToggleButtonAdmin() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <Pressable onPress={toggleTheme} style={styles.themeButtonAdmin}>
+      <IconSymbol
+        name={theme === 'light' ? 'moon.fill' : 'sun.max.fill'}
+        size={24}
+        color={FalabellaColors.primary}
+      />
+    </Pressable>
+  )
+}

@@ -62,11 +62,10 @@ export function AppConfigProvider({ children }: { children: any }) {
         setConfig(newConfig)
         // Guardar en cache local
         await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
-        console.log('✅ Configuración cargada desde backend:', newConfig)
         return
       }
     } catch (error) {
-      console.log('⚠ No se pudo cargar desde backend, usando cache local')
+
     }
 
     // Fallback: cargar desde AsyncStorage
@@ -103,7 +102,6 @@ export function AppConfigProvider({ children }: { children: any }) {
       const newConfig = { ...config, storeName: name }
       setConfig(newConfig)
       await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
-      console.log('✅ Nombre actualizado:', name)
     } catch (error) {
       console.error('Error actualizando nombre:', error)
       throw error
@@ -129,7 +127,6 @@ export function AppConfigProvider({ children }: { children: any }) {
       const newConfig = { ...config, storeLogo: logo }
       setConfig(newConfig)
       await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
-      console.log('✅ Logo actualizado:', logo)
     } catch (error) {
       console.error('Error actualizando logo:', error)
       throw error
@@ -155,7 +152,6 @@ export function AppConfigProvider({ children }: { children: any }) {
       const newConfig = { ...config, fontFamily: font }
       setConfig(newConfig)
       await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
-      console.log('✅ Fuente actualizada:', font)
     } catch (error) {
       console.error('Error actualizando fuente:', error)
       throw error
@@ -165,8 +161,6 @@ export function AppConfigProvider({ children }: { children: any }) {
   async function updateAllSettings(settings: Partial<AppConfig>) {
     try {
       const token = await AsyncStorage.getItem('token')
-      console.log('🔑 Token disponible:', !!token)
-      console.log('🌐 API URL:', API_URL)
       
       if (!token) {
         throw new Error('No hay sesión activa. Por favor, inicia sesión.')
@@ -179,8 +173,6 @@ export function AppConfigProvider({ children }: { children: any }) {
       if (settings.fontFamily !== undefined) backendSettings.font_family = settings.fontFamily
       if (settings.displayMode !== undefined) backendSettings.display_mode = settings.displayMode
 
-      console.log('📤 Enviando configuración:', backendSettings)
-
       const response = await fetch(`${API_URL}/settings`, {
         method: 'PUT',
         headers: {
@@ -189,8 +181,6 @@ export function AppConfigProvider({ children }: { children: any }) {
         },
         body: JSON.stringify(backendSettings)
       })
-
-      console.log('📥 Respuesta del servidor:', response.status, response.statusText)
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -206,7 +196,6 @@ export function AppConfigProvider({ children }: { children: any }) {
       const newConfig = { ...config, ...settings }
       setConfig(newConfig)
       await AsyncStorage.setItem('app.config', JSON.stringify(newConfig))
-      console.log('✅ Configuración actualizada:', newConfig)
     } catch (error) {
       console.error('Error actualizando configuración:', error)
       throw error
